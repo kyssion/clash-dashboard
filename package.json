@@ -19,7 +19,7 @@
     "scripts": {
         "start": "vite",
         "build": "vite build",
-        "lint": "pnpm lint:ts",
+        "lint": "npm lint:ts",
         "lint:ts": "eslint --ext=jsx,ts,tsx --fix src",
         "contributors:add": "all-contributors add",
         "contributors:generate": "all-contributors generate"

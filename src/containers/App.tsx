@@ -3,7 +3,7 @@ import { Route, Navigate, Routes, useLocation, Outlet } from 'react-router-dom'
 
 // import Overview from '@containers/Overview'
 import Connections from '@containers/Connections'
-import ExternalControllerModal from '@containers/ExternalControllerDrawer'
+// import ExternalControllerModal from '@containers/ExternalControllerDrawer'
 import Logs from '@containers/Logs'
 import Proxies from '@containers/Proxies'
 import Rules from '@containers/Rules'
@@ -35,7 +35,7 @@ export default function App () {
             <div className="page-container">
                 <Outlet />
             </div>
-            <ExternalControllerModal />
+            {/* <ExternalControllerModal /> */}
         </div>
     )
 
