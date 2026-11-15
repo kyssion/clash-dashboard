@@ -15,6 +15,11 @@ export function ConnectionInfo (props: ConnectionsInfoProps) {
     const { translation } = useI18n()
     const t = useMemo(() => translation('Connections').t, [translation])
 
+    // The backend serializes an empty host for direct-IP connections.
+     
+    const host = props.connection.metadata?.host || props.connection.metadata?.destinationIP
+    const sourceIP = props.connection.metadata?.sourceIP
+
     return (
         <div className={classnames(props.className, 'flex flex-col overflow-y-auto text-sm')}>
             <div className="my-3 flex">
@@ -34,8 +39,8 @@ export function ConnectionInfo (props: ConnectionsInfoProps) {
             <div className="my-3 flex">
                 <span className="w-20 font-bold">{t('info.host')}</span>
                 <span className="flex-1 break-all font-mono">{
-                    props.connection.metadata?.host
-                        ? `${props.connection.metadata.host}:${props.connection.metadata?.destinationPort}`
+                    host
+                        ? `${host}:${props.connection.metadata?.destinationPort ?? ''}`
                         : t('info.hostEmpty')
                 }</span>
             </div>
@@ -50,7 +55,9 @@ export function ConnectionInfo (props: ConnectionsInfoProps) {
             <div className="my-3 flex">
                 <span className="w-20 font-bold">{t('info.srcIP')}</span>
                 <span className="font-mono">{
-                    `${props.connection.metadata?.sourceIP}:${props.connection.metadata?.sourcePort}`
+                    sourceIP
+                        ? `${sourceIP}:${props.connection.metadata?.sourcePort ?? ''}`
+                        : t('info.hostEmpty')
                 }</span>
             </div>
             <div className="my-3 flex">

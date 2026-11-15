@@ -5,13 +5,15 @@
     <br>
 </h1>
 
-<h4 align="center">Web Dashboard for Clash, now host on ClashX</h4>
+<h4 align="center">Web Dashboard for Clash</h4>
 
-<p align="center">
-    <a href="https://github.com/Dreamacro/clash-dashboard/actions">
-        <img src="https://img.shields.io/github/actions/workflow/status/Dreamacro/clash-dashboard/ghpages.yml?branch=master&style=flat-square" alt="Github Actions">
-    </a>
-</p>
+> This dashboard is integrated into the clash repository (`dashboard/`). Its
+> production build is embedded into the clash binary and served from `/ui/`,
+> so the dashboard starts together with clash. API and WebSocket requests use
+> the page's own origin — there is no external-controller connection dialog.
+>
+> If the controller has a `secret`, open
+> `http://127.0.0.1:9090/ui/?secret=YOUR_SECRET`.
 
 ## Features
 
@@ -24,34 +26,30 @@
 
 See [Projects](https://github.com/Dreamacro/clash-dashboard/projects)
 
-### Start develop with ClashX(Dev Mode)
-
-You can setup your local development environment with [the contribution guide](CONTRIBUTION.md).
-
-```bash
-# Enable ClashX with Dev Mode
-defaults write com.west2online.ClashX kEnableDashboard -bool YES
-
-# Set dashboard entry
-defaults write com.west2online.ClashX webviewUrl "http://localhost:8080/"
-
-# Reset dashboard entry
-defaults delete com.west2online.ClashX webviewUrl
-```
-
 ### Development Env
 
-This command will start Clash Dashboard at `http://localhost:8080/`
+Start clash first, then run the Vite dev server:
 
 ```bash
-$ pnpm start
+$ npm start
+```
+
+The dev server listens on `http://localhost:3000/` and proxies API/WebSocket
+requests to `http://127.0.0.1:9090` by default. Set `CLASH_API` to point at a
+different controller, for example:
+
+```bash
+$ CLASH_API=http://127.0.0.1:9999 npm start
 ```
 
 ### Build for production
 
 ```bash
-$ pnpm build
+$ npm run build
 ```
+
+The generated `dist/` is embedded by the parent clash project. Rebuild it with
+`make dashboard` from the repository root when the frontend changes.
 
 ## Contributors
 

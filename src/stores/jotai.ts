@@ -1,7 +1,6 @@
-import { usePreviousDistinct, useSyncedRef } from '@react-hookz/web'
 import { type AxiosError } from 'axios'
 import { produce } from 'immer'
-import { atom, useAtom, useAtomValue, useSetAtom } from 'jotai'
+import { atom, useAtom, useAtomValue } from 'jotai'
 import { atomWithStorage } from 'jotai/utils'
 import { atomWithImmer } from 'jotai-immer'
 import { get } from 'lodash-es'
@@ -13,16 +12,13 @@ import { type Get } from 'type-fest'
 import { Language, locales, type Lang, getDefaultLanguage, type LocalizedType } from '@i18n'
 import { partition } from '@lib/helper'
 import { useWarpImmerSetter, type WritableDraft } from '@lib/jotai'
-import { isClashX, jsBridge } from '@lib/jsBridge'
 import type * as API from '@lib/request'
 import { StreamReader } from '@lib/streamer'
 import { type Infer } from '@lib/type'
 import type * as Models from '@models'
 import { type Log } from '@models/Log'
 
-import { useAPIInfo, useClient } from './request'
-
-export const identityAtom = atom(true)
+import { useAPISecret, useClient } from './request'
 
 export const languageAtom = atomWithStorage<Lang | undefined>('language', undefined)
 
@@ -51,11 +47,9 @@ export const version = atom({
 export function useVersion () {
     const [data, set] = useAtom(version)
     const client = useClient()
-    const setIdentity = useSetAtom(identityAtom)
 
     useSWR([client], async function () {
         const result = await ResultAsync.fromPromise(client.getVersion(), e => e as AxiosError)
-        setIdentity(result.isOk())
 
         set(
             result.isErr()
@@ -159,15 +153,22 @@ export function useProxy () {
     const { mutate } = useSWR(['/proxies', client], async () => {
         const allProxies = await client.getProxies()
 
-        const global = allProxies.data.proxies.GLOBAL as API.Group
+        const global = allProxies.data.proxies.GLOBAL as API.Group | undefined
+        if (global == null || !Array.isArray(global.all)) {
+            return
+        }
+
         // fix missing name
         global.name = 'GLOBAL'
 
-        const policyGroup = new Set(['Selector', 'URLTest', 'Fallback', 'LoadBalance'])
+        const policyGroup = new Set(['Selector', 'URLTest', 'Fallback', 'LoadBalance', 'Relay'])
         const unUsedProxy = new Set(['DIRECT', 'REJECT', 'GLOBAL'])
         const proxies = global.all
             .filter(key => !unUsedProxy.has(key))
-            .map(key => ({ ...allProxies.data.proxies[key], name: key }))
+            .flatMap(key => {
+                const proxy = allProxies.data.proxies[key]
+                return proxy ? [{ ...proxy, name: key }] : []
+            })
         const [proxy, groups] = partition(proxies, proxy => !policyGroup.has(proxy.type))
         set({ proxies: proxy as API.Proxy[], groups: groups as API.Group[], global })
     })
@@ -212,25 +213,6 @@ export const proxyMapping = atom((get) => {
     return proxyMap
 })
 
-export function useClashXData () {
-    const { data, mutate } = useSWR('/clashx', async () => {
-        if (!isClashX()) {
-            return {
-                isClashX: false,
-                startAtLogin: false,
-                systemProxy: false,
-            }
-        }
-
-        const startAtLogin = await jsBridge?.getStartAtLogin() ?? false
-        const systemProxy = await jsBridge?.isSystemProxySet() ?? false
-
-        return { startAtLogin, systemProxy, isClashX: true }
-    })
-
-    return { data, update: mutate }
-}
-
 export const rules = atomWithImmer([] as API.Rule[])
 
 export function useRule () {
@@ -249,40 +231,39 @@ export function useRule () {
 const logsAtom = atom(new StreamReader<Log>({ bufferLength: 200 }))
 
 export function useLogsStreamReader () {
-    const apiInfo = useAPIInfo()
     const { general } = useGeneral()
     const { data: { logLevel } } = useConfig()
     const item = useAtomValue(logsAtom)
+    const secret = useAPISecret()
 
     const level = logLevel || general.logLevel
-    const previousKey = usePreviousDistinct(
-        `${apiInfo.protocol}//${apiInfo.hostname}:${apiInfo.port}/logs?level=${level}&secret=${encodeURIComponent(apiInfo.secret)}`,
-    )
-
-    const apiInfoRef = useSyncedRef(apiInfo)
 
     useEffect(() => {
-        if (level) {
-            const apiInfo = apiInfoRef.current
-            const protocol = apiInfo.protocol === 'http:' ? 'ws:' : 'wss:'
-            const logUrl = `${protocol}//${apiInfo.hostname}:${apiInfo.port}/logs?level=${level}&token=${encodeURIComponent(apiInfo.secret)}`
-            item.connect(logUrl)
+        if (!level) {
+            return
         }
-    }, [apiInfoRef, item, level, previousKey])
+
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+        const logUrl = `${protocol}//${window.location.host}/logs?level=${level}&token=${encodeURIComponent(secret)}`
+        item.connect(logUrl)
+    }, [item, level, secret])
 
     return item
 }
 
 export function useConnectionStreamReader () {
-    const apiInfo = useAPIInfo()
+    const secret = useAPISecret()
+    const connection = useRef<StreamReader<API.Snapshot> | null>(null)
 
-    const connection = useRef(new StreamReader<API.Snapshot>({ bufferLength: 200 }))
+    if (connection.current == null) {
+        connection.current = new StreamReader<API.Snapshot>({ bufferLength: 200 })
+    }
 
-    const protocol = apiInfo.protocol === 'http:' ? 'ws:' : 'wss:'
-    const url = `${protocol}//${apiInfo.hostname}:${apiInfo.port}/connections?token=${encodeURIComponent(apiInfo.secret)}`
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+    const url = `${protocol}//${window.location.host}/connections?token=${encodeURIComponent(secret)}`
 
     useEffect(() => {
-        connection.current.connect(url)
+        connection.current?.connect(url)
     }, [url])
 
     return connection.current

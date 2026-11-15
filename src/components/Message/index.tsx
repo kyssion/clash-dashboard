@@ -1,6 +1,5 @@
 import classnames from 'classnames'
 import { useLayoutEffect } from 'react'
-import { unmountComponentAtNode } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 
 import { Icon } from '@components'
@@ -71,12 +70,12 @@ export function showMessage (args: ArgsProps) {
     const container = document.createElement('div')
     document.body.appendChild(container)
 
+    const root = createRoot(container)
+
     // remove container when component unmount
     const removeComponent = () => {
-        const isUnMount = unmountComponentAtNode(container)
-        if (isUnMount) {
-            document.body.removeChild(container)
-        }
+        root.unmount()
+        container.remove()
     }
 
     const icon = <Icon type={TYPE_ICON_MAP[args.type]} size={16}></Icon>
@@ -90,7 +89,7 @@ export function showMessage (args: ArgsProps) {
         onClose,
     }
 
-    createRoot(container).render(<Message {...props} />)
+    root.render(<Message {...props} />)
 }
 
 export const info = (

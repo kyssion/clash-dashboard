@@ -1,15 +1,12 @@
-import classnames from 'classnames'
 import { Route, Navigate, Routes, useLocation, Outlet } from 'react-router-dom'
 
 // import Overview from '@containers/Overview'
 import Connections from '@containers/Connections'
-import ExternalControllerModal from '@containers/ExternalControllerDrawer'
 import Logs from '@containers/Logs'
 import Proxies from '@containers/Proxies'
 import Rules from '@containers/Rules'
 import Settings from '@containers/Settings'
 import SideBar from '@containers/Sidebar'
-import { isClashX } from '@lib/jsBridge'
 import { useLogsStreamReader } from '@stores'
 
 import '../styles/common.scss'
@@ -30,12 +27,11 @@ export default function App () {
     ]
 
     const layout = (
-        <div className={classnames('app', { 'not-clashx': !isClashX() })}>
+        <div className="app">
             <SideBar routes={routes} />
             <div className="page-container">
                 <Outlet />
             </div>
-            <ExternalControllerModal />
         </div>
     )
 

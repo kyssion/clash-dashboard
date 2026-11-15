@@ -1,13 +1,13 @@
 import type { AxiosError } from 'axios'
 import classnames from 'classnames'
+import { useSetAtom } from 'jotai'
 import { ResultAsync } from 'neverthrow'
 import { useMemo, useLayoutEffect, useCallback } from 'react'
 
 import EE, { Action } from '@lib/event'
-import { isClashX, jsBridge } from '@lib/jsBridge'
 import { type Proxy as IProxy } from '@lib/request'
 import { type BaseComponentProps } from '@models'
-import { useClient, useProxy } from '@stores'
+import { useClient, useProxy, proxyProvider } from '@stores'
 
 import './style.scss'
 
@@ -25,14 +25,10 @@ const TagColors = {
 export function Proxy (props: ProxyProps) {
     const { config, className } = props
     const { set } = useProxy()
+    const setProviders = useSetAtom(proxyProvider)
     const client = useClient()
 
     const getDelay = useCallback(async (name: string) => {
-        if (isClashX()) {
-            const delay = await jsBridge?.getProxyDelay(name) ?? 0
-            return delay
-        }
-
         const { data: { delay } } = await client.getProxyDelay(name)
         return delay
     }, [client])
@@ -47,7 +43,15 @@ export function Proxy (props: ProxyProps) {
                 proxy.history.push({ time: Date.now().toString(), delay: validDelay })
             }
         })
-    }, [config.name, getDelay, set])
+        setProviders(providers => providers.map(provider => ({
+            ...provider,
+            proxies: provider.proxies.map(proxy => (
+                proxy.name === config.name
+                    ? { ...proxy, history: [...proxy.history, { time: Date.now().toString(), delay: validDelay }] }
+                    : proxy
+            )),
+        })))
+    }, [config.name, getDelay, set, setProviders])
 
     const delay = config.history?.length ? config.history.slice(-1)[0].delay : 0
     const meanDelay = config.history?.length ? config.history.slice(-1)[0].meanDelay : undefined
@@ -64,7 +68,7 @@ export function Proxy (props: ProxyProps) {
     const hasError = useMemo(() => delay === 0, [delay])
     const color = useMemo(
         () => Object.keys(TagColors).find(
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+             
             threshold => (meanDelay || delay) <= TagColors[threshold as keyof typeof TagColors],
         ),
         [delay, meanDelay],

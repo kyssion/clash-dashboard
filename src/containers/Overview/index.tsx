@@ -1,4 +1,4 @@
-import logo from '@assets/logo-fixing.svg'
+import logo from '@assets/LOGO-fixing.svg'
 
 export default function Overview () {
     return (

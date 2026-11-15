@@ -32,6 +32,13 @@ const Columns = {
 
 const shouldCenter = new Set<string>([Columns.Network, Columns.Type, Columns.Speed, Columns.Upload, Columns.Download, Columns.SourceIP, Columns.Time, Columns.Process])
 
+function formatHost (metadata: API.Connections['metadata']) {
+    // The backend serializes an empty host for direct-IP connections.
+     
+    const host = metadata.host || metadata.destinationIP || ''
+    return `${host}:${metadata.destinationPort ?? ''}`
+}
+
 function formatSpeed (upload: number, download: number) {
     switch (true) {
         case upload === 0 && download === 0:
@@ -72,7 +79,7 @@ export default function Connections () {
     const data: FormatConnection[] = useMemo(() => connections.map(
         c => ({
             id: c.id,
-            host: `${c.metadata.host || c.metadata.destinationIP}:${c.metadata.destinationPort}`,
+            host: formatHost(c.metadata),
             chains: c.chains.slice().reverse().join(' / '),
             rule: c.rulePayload ? `${c.rule} :: ${c.rulePayload}` : c.rule,
             time: new Date(c.start).getTime(),
@@ -158,7 +165,7 @@ export default function Connections () {
         }
     }, [connStreamReader, feed, setTraffic])
     useUnmountEffect(() => {
-        readerRef.current?.destory()
+        readerRef.current?.destroy()
     })
 
     const instance = useReactTable({

@@ -3,6 +3,9 @@
  * Style Common Variables
  */
 
+@use "sass:map";
+@use "sass:meta";
+
 $background: #f4f5f6;
 
 // primary colors
@@ -26,8 +29,8 @@ $color-black: #000;
 
 // response break point
 @mixin response($name) {
-    @if map-has-key($breakpoints, $name) {
-        @media #{inspect(map-get($breakpoints, $name))} {
+    @if map.has-key($breakpoints, $name) {
+        @media #{meta.inspect(map.get($breakpoints, $name))} {
             @content;
         }
     }

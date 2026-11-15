@@ -17,6 +17,10 @@ export class StreamReader<T> {
 
     protected connection: WebSocket | null = null
 
+    protected retryTimer: ReturnType<typeof setTimeout> | null = null
+
+    protected destroyed = false
+
     constructor (config: Config) {
         this.config = Object.assign(
             {
@@ -27,38 +31,95 @@ export class StreamReader<T> {
         )
     }
 
-    protected connectWebsocket () {
-        if (!this.url) {
+    protected clearRetryTimer () {
+        if (this.retryTimer != null) {
+            clearTimeout(this.retryTimer)
+            this.retryTimer = null
+        }
+    }
+
+    protected scheduleReconnect () {
+        if (this.destroyed || this.retryTimer != null) {
             return
         }
 
-        const url = new URL(this.url)
+        this.retryTimer = setTimeout(() => {
+            this.retryTimer = null
+            this.connectWebsocket()
+        }, this.config.retryInterval)
+    }
 
-        this.connection = new WebSocket(url.toString())
-        this.connection.addEventListener('message', msg => {
-            const data = JSON.parse(msg.data)
-            this.EE.emit('data', [data])
-            if (this.config.bufferLength > 0) {
-                this.innerBuffer.push(data)
-                if (this.innerBuffer.length > this.config.bufferLength) {
-                    this.innerBuffer.splice(0, this.innerBuffer.length - this.config.bufferLength)
+    protected connectWebsocket () {
+        if (!this.url || this.destroyed) {
+            return
+        }
+
+        let connection: WebSocket
+        try {
+            connection = new WebSocket(this.url)
+        } catch (err) {
+            this.EE.emit('error', err)
+            this.scheduleReconnect()
+            return
+        }
+
+        this.connection = connection
+
+        connection.addEventListener('message', msg => {
+            if (this.connection !== connection) {
+                return
+            }
+
+            try {
+                const data = JSON.parse(msg.data) as T
+                this.EE.emit('data', [data])
+                if (this.config.bufferLength > 0) {
+                    this.innerBuffer.push(data)
+                    if (this.innerBuffer.length > this.config.bufferLength) {
+                        this.innerBuffer.splice(0, this.innerBuffer.length - this.config.bufferLength)
+                    }
                 }
+            } catch (err) {
+                this.EE.emit('error', err)
             }
         })
 
-        this.connection.addEventListener('error', err => {
+        connection.addEventListener('error', err => {
+            if (this.connection !== connection) {
+                return
+            }
+
             this.EE.emit('error', err)
-            this.connection?.close()
-            setTimeout(this.connectWebsocket, this.config.retryInterval)
+            connection.close()
+        })
+
+        connection.addEventListener('close', () => {
+            if (this.connection !== connection) {
+                return
+            }
+
+            this.connection = null
+            this.scheduleReconnect()
         })
     }
 
     connect (url: string) {
-        if (this.url === url && this.connection) {
+        if (this.url === url && this.connection != null) {
             return
         }
+
+        if (this.url !== url) {
+            this.innerBuffer = []
+        }
+
         this.url = url
-        this.connection?.close()
+        this.destroyed = false
+        this.clearRetryTimer()
+
+        const previous = this.connection
+        this.connection = null
+        previous?.close()
+
         this.connectWebsocket()
     }
 
@@ -74,9 +135,13 @@ export class StreamReader<T> {
         return this.innerBuffer.slice()
     }
 
-    destory () {
+    destroy () {
+        this.destroyed = true
+        this.clearRetryTimer()
         this.EE.removeAllListeners()
-        this.connection?.close()
+
+        const connection = this.connection
         this.connection = null
+        connection?.close()
     }
 }

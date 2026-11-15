@@ -40,7 +40,7 @@
     }
 
     &:active {
-        background: darken($color-white, 2%);
+        background: color.adjust($color-white, $lightness: -2%);
         color: $color-primary-darken;
     }
 }
@@ -48,55 +48,55 @@
 .button-danger {
     color: $color-white;
     border: none;
-    background: linear-gradient(135deg, $color-red, darken($color-red, 10%));
-    box-shadow: 0 2px 8px rgba($color: darken($color-red, 10%), $alpha: 0.5);
+    background: linear-gradient(135deg, $color-red, color.adjust($color-red, $lightness: -10%));
+    box-shadow: 0 2px 8px rgba($color: color.adjust($color-red, $lightness: -10%), $alpha: 0.5);
 
     &:hover {
         border: none;
     }
 
     &:active {
-        box-shadow: 0 0 2px rgba($color: darken($color-red, 10%), $alpha: 0.5);
+        box-shadow: 0 0 2px rgba($color: color.adjust($color-red, $lightness: -10%), $alpha: 0.5);
     }
 }
 
 .button-success {
     color: $color-white;
     border: none;
-    background: linear-gradient(135deg, $color-green, darken($color-green, 5%));
-    box-shadow: 0 2px 8px rgba($color: darken($color-green, 5%), $alpha: 0.5);
+    background: linear-gradient(135deg, $color-green, color.adjust($color-green, $lightness: -5%));
+    box-shadow: 0 2px 8px rgba($color: color.adjust($color-green, $lightness: -5%), $alpha: 0.5);
 
     &:hover {
         border: none;
     }
 
     &:active {
-        box-shadow: 0 0 2px rgba($color: darken($color-green, 5%), $alpha: 0.5);
+        box-shadow: 0 0 2px rgba($color: color.adjust($color-green, $lightness: -5%), $alpha: 0.5);
     }
 }
 
 .button-warning {
     color: $color-white;
     border: none;
-    background: linear-gradient(135deg, $color-orange, darken($color-orange, 5%));
-    box-shadow: 0 2px 8px rgba($color: darken($color-orange, 5%), $alpha: 0.5);
+    background: linear-gradient(135deg, $color-orange, color.adjust($color-orange, $lightness: -5%));
+    box-shadow: 0 2px 8px rgba($color: color.adjust($color-orange, $lightness: -5%), $alpha: 0.5);
 
     &:hover {
         border: none;
     }
 
     &:active {
-        box-shadow: 0 0 2px rgba($color: darken($color-orange, 5%), $alpha: 0.5);
+        box-shadow: 0 0 2px rgba($color: color.adjust($color-orange, $lightness: -5%), $alpha: 0.5);
     }
 }
 
 .button.button-disabled {
     color: $color-gray-dark;
-    background: linear-gradient(135deg, $color-gray-light, darken($color-gray-light, 5%));
-    box-shadow: 0 2px 8px rgba($color: darken($color-gray-light, 5%), $alpha: 0.5);
+    background: linear-gradient(135deg, $color-gray-light, color.adjust($color-gray-light, $lightness: -5%));
+    box-shadow: 0 2px 8px rgba($color: color.adjust($color-gray-light, $lightness: -5%), $alpha: 0.5);
     cursor: not-allowed;
 
     &:active {
-        box-shadow: 0 0 2px rgba($color: darken($color-gray-light, 5%), $alpha: 0.5);
+        box-shadow: 0 0 2px rgba($color: color.adjust($color-gray-light, $lightness: -5%), $alpha: 0.5);
     }
 }

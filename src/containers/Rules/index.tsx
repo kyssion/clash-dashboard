@@ -3,7 +3,7 @@ import { FixedSizeList as List } from 'react-window'
 import useSWR from 'swr'
 
 import { Header, Card } from '@components'
-import { useI18n, useRule, useRuleProviders } from '@stores'
+import { useClient, useI18n, useRule, useRuleProviders } from '@stores'
 
 import { Provider } from './Provider'
 import './style.scss'
@@ -32,10 +32,11 @@ function RuleProviders () {
 
 export default function Rules () {
     const { rules, update } = useRule()
+    const client = useClient()
     const { translation } = useI18n()
     const { t } = translation('Rules')
 
-    useSWR('rules', update)
+    useSWR(['rules', client], update)
 
     function renderRuleItem ({ index, style }: { index: number, style: React.CSSProperties }) {
         const rule = rules[index]

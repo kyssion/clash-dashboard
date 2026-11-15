@@ -22,6 +22,7 @@ const logMap = new Map([
     ['warning', 'text-pink-500'],
     ['error', 'text-rose-500'],
 ])
+const maxLogs = 1000
 
 export default function Logs () {
     const listRef = useRef<HTMLUListElement>(null)
@@ -32,27 +33,36 @@ export default function Logs () {
     const { general: { logLevel: configLevel } } = useGeneral()
     const { t } = translation('Logs')
     const logsStreamReader = useLogsStreamReader()
-    const scrollHeightRef = useRef(listRef.current?.scrollHeight ?? 0)
+    const autoScrollRef = useRef(true)
 
     const isConfigSilent = lowerCase(configLevel) === 'silent'
 
     useLayoutEffect(() => {
         const ul = listRef.current
-        if (ul != null && scrollHeightRef.current === (ul.scrollTop + ul.clientHeight)) {
-            ul.scrollTop = ul.scrollHeight - ul.clientHeight
+        if (ul != null && autoScrollRef.current) {
+            ul.scrollTop = ul.scrollHeight
         }
-        scrollHeightRef.current = ul?.scrollHeight ?? 0
     })
+
+    function handleScroll () {
+        const ul = listRef.current
+        if (ul == null) {
+            return
+        }
+
+        autoScrollRef.current = ul.scrollTop + ul.clientHeight >= ul.scrollHeight - 10
+    }
 
     useEffect(() => {
         function handleLog (newLogs: Log[]) {
-            logsRef.current = logsRef.current.slice().concat(newLogs.map(d => ({ ...d, time: new Date() })))
+            const logs = logsRef.current.concat(newLogs.map(d => ({ ...d, time: new Date() })))
+            logsRef.current = logs.length > maxLogs ? logs.slice(logs.length - maxLogs) : logs
             setLogs(logsRef.current)
         }
 
         if (logsStreamReader != null) {
             logsStreamReader.subscribe('data', handleLog)
-            logsRef.current = logsStreamReader.buffer()
+            logsRef.current = logsStreamReader.buffer().map(log => ({ ...log, time: new Date() }))
             setLogs(logsRef.current)
         }
         return () => logsStreamReader?.unsubscribe('data', handleLog)
@@ -71,7 +81,7 @@ export default function Logs () {
             </Header>
 
             <Card className="mt-2.5 flex flex-1 flex-col md:mt-4">
-                <ul className="logs-panel" ref={listRef}>
+                <ul className="logs-panel" ref={listRef} onScroll={handleScroll}>
                     {
                         logs.map(
                             (log, index) => (

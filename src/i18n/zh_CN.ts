@@ -11,9 +11,7 @@ const CN = {
     Settings: {
         title: '设置',
         labels: {
-            startAtLogin: '开机时启动',
             language: '语言',
-            setAsSystemProxy: '设置为系统代理',
             allowConnectFromLan: '允许来自局域网的连接',
             proxyMode: '代理模式',
             socks5ProxyPort: 'Socks5 代理端口',
@@ -28,18 +26,6 @@ const CN = {
             rules: '规则',
             direct: '直连',
             script: '脚本',
-        },
-        versionString: '当前 ClashX 已是最新版本：{{version}}',
-        checkUpdate: '检查更新',
-        externalControllerSetting: {
-            title: '编辑外部控制设置',
-            note: '请注意，修改该配置项并不会修改你的 Clash 配置文件，请确认修改后的外部控制地址和 Clash 配置文件内的地址一致，否则会导致 Dashboard 无法连接。',
-            host: 'Host',
-            port: '端口',
-            secret: '密钥',
-            addText: '添 加',
-            deleteText: '删 除',
-            deleteErrorText: '没有找到该 Host',
         },
     },
     Logs: {

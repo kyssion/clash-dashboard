@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/png" href="./assets/logo-CpthcTHv.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f4f5f6" />
+    <meta name="description" content="Clash web port" />
+    <title>Clash</title>
+    <script>
+      // Older dashboard builds used a service worker. Unregister it so the
+      // embedded assets always match the running clash binary.
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+          registrations.forEach(registration => registration.unregister())
+        })
+      }
+    </script>
+    <script type="module" crossorigin src="./assets/index-DO2Lgotx.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/vendor-un4c4knC.js">
+    <link rel="stylesheet" crossorigin href="./assets/vendor-B7VT8aW2.css">
+    <link rel="stylesheet" crossorigin href="./assets/index-C_fNPA1y.css">
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+  </body>
+</html>

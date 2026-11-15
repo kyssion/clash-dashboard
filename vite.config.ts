@@ -1,10 +1,21 @@
+import { fileURLToPath } from 'node:url'
+
 import react from '@vitejs/plugin-react'
 import jotaiDebugLabel from 'jotai/babel/plugin-debug-label'
 import jotaiReactRefresh from 'jotai/babel/plugin-react-refresh'
 import UnoCSS from 'unocss/vite'
-import { defineConfig, splitVendorChunkPlugin } from 'vite'
-import { VitePWA } from 'vite-plugin-pwa'
+import { defineConfig } from 'vite'
 import tsConfigPath from 'vite-tsconfig-paths'
+
+// During development the dashboard is served by Vite, while the API lives in
+// the clash process. Keep the frontend same-origin and proxy API requests.
+const srcDir = fileURLToPath(new URL('./src', import.meta.url))
+const clashAPI = process.env.CLASH_API ?? 'http://127.0.0.1:9090'
+const clashProxy = {
+    target: clashAPI,
+    changeOrigin: true,
+    ws: true,
+}
 
 export default defineConfig(
     env => ({
@@ -15,34 +26,51 @@ export default defineConfig(
             }),
             tsConfigPath(),
             UnoCSS(),
-            VitePWA({
-                injectRegister: 'inline',
-                manifest: {
-                    icons: [{
-                        src: '//cdn.jsdelivr.net/gh/Dreamacro/clash-dashboard/src/assets/Icon.png',
-                        sizes: '512x512',
-                        type: 'image/png',
-                    }],
-                    start_url: '/',
-                    short_name: 'Clash Dashboard',
-                    name: 'Clash Dashboard',
-                },
-            }),
-            splitVendorChunkPlugin(),
         ],
         server: {
             port: 3000,
             host: '0.0.0.0',
+            proxy: {
+                '/configs': clashProxy,
+                '/proxies': clashProxy,
+                '/rules': clashProxy,
+                '/connections': clashProxy,
+                '/providers': clashProxy,
+                '/dns': clashProxy,
+                '/logs': clashProxy,
+                '/traffic': clashProxy,
+                '/version': clashProxy,
+            },
         },
         base: './',
         css: {
             preprocessorOptions: {
                 scss: {
-                    additionalData: '@use "sass:math"; @import "src/styles/variables.scss";',
+                    loadPaths: [srcDir],
+                    additionalData: '@use "sass:color"; @use "sass:math"; @use "styles/variables" as *;',
                 },
             },
         },
-        build: { reportCompressedSize: false },
+        build: {
+            reportCompressedSize: false,
+            rollupOptions: {
+                onwarn (warning, warn) {
+                    // React Server Component directives from dependencies are
+                    // irrelevant for this browser-only bundle.
+                    if (warning.code === 'MODULE_LEVEL_DIRECTIVE' && warning.id?.includes('node_modules')) {
+                        return
+                    }
+                    warn(warning)
+                },
+                output: {
+                    manualChunks (id) {
+                        if (id.includes('node_modules')) {
+                            return 'vendor'
+                        }
+                    },
+                },
+            },
+        },
         esbuild: {
             jsxInject: "import React from 'react'",
         },

@@ -97,7 +97,7 @@
         }
 
         &.completed {
-            background-color: darken($color-gray-light, 3%);
+            background-color: color.adjust($color-gray-light, $lightness: -3%);
             color: rgba($color-primary-darken, 50%);
         }
     }

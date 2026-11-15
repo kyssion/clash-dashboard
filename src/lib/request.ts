@@ -65,7 +65,7 @@ export interface Proxy {
 
 export interface Group {
     name: string
-    type: 'Selector' | 'URLTest' | 'Fallback'
+    type: 'Selector' | 'URLTest' | 'Fallback' | 'LoadBalance' | 'Relay'
     now: string
     all: string[]
     history: History[]
@@ -103,6 +103,7 @@ export class Client {
     constructor (url: string, secret?: string) {
         this.axiosClient = axios.create({
             baseURL: url,
+            timeout: 30000,
             headers: secret ? { Authorization: `Bearer ${secret}` } : {},
         })
     }
@@ -133,7 +134,16 @@ export class Client {
     }
 
     async getRuleProviders () {
-        return await this.axiosClient.get<RuleProviders>('providers/rules')
+        const resp = await this.axiosClient.get<RuleProviders>('providers/rules', {
+            validateStatus (status) {
+                // rule providers are a premium feature
+                return (status >= 200 && status < 300) || status === 404
+            },
+        })
+        if (resp.status === 404) {
+            resp.data = { providers: {} }
+        }
+        return resp
     }
 
     async updateProvider (name: string) {

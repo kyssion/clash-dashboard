@@ -1,6 +1,6 @@
-/* eslint-disable no-redeclare */
+ 
 import { type Draft } from 'immer'
-import { useRef, useEffect, useState, useMemo } from 'react'
+import { useRef, useEffect, useState, useMemo, useCallback } from 'react'
 import { useImmer } from 'use-immer'
 
 import { noop } from '@lib/helper'
@@ -76,12 +76,8 @@ export function useRound<T> (list: T[], defidx = 0) {
 export function useVisible (initial = false) {
     const [visible, setVisible] = useState(initial)
 
-    function hide () {
-        setVisible(false)
-    }
+    const hide = useCallback(() => setVisible(false), [])
+    const show = useCallback(() => setVisible(true), [])
 
-    function show () {
-        setVisible(true)
-    }
     return { visible, hide, show }
 }

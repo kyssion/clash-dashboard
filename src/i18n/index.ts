@@ -17,7 +17,7 @@ type CN = typeof Language.zh_CN
 
 // type guard for US and CN
 type TrueGuard<T extends true> = T
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 type _equalGuard = TrueGuard<IsEqual<Infer<US>, Infer<CN>>>
 
 export type LocalizedType = US
@@ -26,9 +26,10 @@ export const locales = Object.keys(Language)
 
 export function getDefaultLanguage (): Lang {
     for (const language of window.navigator.languages) {
-        if (language.includes('zh')) {
+        const normalized = language.toLowerCase()
+        if (normalized.includes('zh')) {
             return 'zh_CN'
-        } else if (language.includes('us')) {
+        } else if (normalized.includes('us')) {
             return 'en_US'
         }
     }
