@@ -18,7 +18,7 @@ import { type Infer } from '@lib/type'
 import type * as Models from '@models'
 import { type Log } from '@models/Log'
 
-import { getWebSocketBase, useAPISecret, useClient } from './request'
+import { getWebSocketBase, getWebSocketProtocols, useAPISecret, useClient } from './request'
 
 export const languageAtom = atomWithStorage<Lang | undefined>('language', undefined)
 
@@ -247,8 +247,8 @@ export function useLogsStreamReader () {
             return
         }
 
-        const logUrl = `${getWebSocketBase()}/logs?level=${level}&token=${encodeURIComponent(secret)}`
-        item.connect(logUrl)
+        const logUrl = `${getWebSocketBase()}/logs?level=${level}`
+        item.connect(logUrl, getWebSocketProtocols(secret))
     }, [item, level, secret])
 
     return item
@@ -262,11 +262,11 @@ export function useConnectionStreamReader () {
         connection.current = new StreamReader<API.Snapshot>({ bufferLength: 200 })
     }
 
-    const url = `${getWebSocketBase()}/connections?token=${encodeURIComponent(secret)}`
+    const url = `${getWebSocketBase()}/connections`
 
     useEffect(() => {
-        connection.current?.connect(url)
-    }, [url])
+        connection.current?.connect(url, getWebSocketProtocols(secret))
+    }, [url, secret])
 
     return connection.current
 }

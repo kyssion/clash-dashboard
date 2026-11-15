@@ -14,6 +14,12 @@
 >
 > If the controller has a `secret`, open
 > `http://127.0.0.1:9090/ui/#/overview?secret=YOUR_SECRET`.
+>
+> For reverse-proxy deployments, configure the public origin in Clash with
+> `external-controller-cors.allow-origins`; `Host`/`X-Forwarded-Host` are not
+> trusted automatically. If the API is not at the parent path of `/ui/`, add
+> `<meta name="clash-api-base" content="/clash">` to the external UI's
+> `index.html`. WebSocket secrets are sent as a subprotocol, not in the URL.
 
 ## Features
 

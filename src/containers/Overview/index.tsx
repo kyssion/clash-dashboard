@@ -5,7 +5,7 @@ import { Card, Header } from '@components'
 import { formatTraffic } from '@lib/helper'
 import type * as API from '@lib/request'
 import { StreamReader } from '@lib/streamer'
-import { getWebSocketBase, useAPISecret, useClient, useGeneral, useI18n, useVersion } from '@stores'
+import { getWebSocketBase, getWebSocketProtocols, useAPISecret, useClient, useGeneral, useI18n, useVersion } from '@stores'
 import './style.scss'
 
 const chartWidth = 600
@@ -31,11 +31,11 @@ export default function Overview () {
     }
 
     const [points, setPoints] = useState<API.Traffic[]>([])
-    const url = `${getWebSocketBase()}/traffic?token=${encodeURIComponent(secret)}`
+    const url = `${getWebSocketBase()}/traffic`
 
     useEffect(() => {
         const reader = readerRef.current!
-        reader.connect(url)
+        reader.connect(url, getWebSocketProtocols(secret))
 
         function handleData (items: API.Traffic[]) {
             setPoints(previous => [...previous, ...items].slice(-maxPoints))
@@ -46,7 +46,7 @@ export default function Overview () {
             reader.unsubscribe('data', handleData)
             reader.destroy()
         }
-    }, [url])
+    }, [url, secret])
 
     const current = points[points.length - 1] ?? { up: 0, down: 0 }
     const maxValue = useMemo(

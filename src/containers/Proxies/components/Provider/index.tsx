@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 
 import { Card, Tag, Icon, Loading, error as showError } from '@components'
 import { compareDesc } from '@containers/Proxies'
@@ -24,7 +24,22 @@ export function Provider (props: ProvidersProps) {
 
     const { visible, hide, show } = useVisible()
 
+    const mountedRef = useRef(true)
+    const pollingRef = useRef(false)
+
+    useEffect(() => {
+        mountedRef.current = true
+        return () => {
+            mountedRef.current = false
+        }
+    }, [])
+
     async function handleHealthChech () {
+        if (pollingRef.current) {
+            return
+        }
+
+        pollingRef.current = true
         show()
         try {
             await client.healthCheckProvider(provider.name, false)
@@ -32,6 +47,10 @@ export function Provider (props: ProvidersProps) {
             let finished = false
             for (let i = 0; i < 120; i++) {
                 await new Promise(resolve => setTimeout(resolve, 500))
+                if (!mountedRef.current) {
+                    return
+                }
+
                 const status = await client.getProviderHealthCheckStatus(provider.name)
                 if (status.status === 204) {
                     finished = true
@@ -39,14 +58,23 @@ export function Provider (props: ProvidersProps) {
                 }
             }
 
+            if (!mountedRef.current) {
+                return
+            }
+
             await update()
             if (!finished) {
                 showError(t('providerActionError'))
             }
         } catch {
-            showError(t('providerActionError'))
+            if (mountedRef.current) {
+                showError(t('providerActionError'))
+            }
         } finally {
-            hide()
+            pollingRef.current = false
+            if (mountedRef.current) {
+                hide()
+            }
         }
     }
 

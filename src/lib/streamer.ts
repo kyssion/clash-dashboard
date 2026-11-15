@@ -15,6 +15,8 @@ export class StreamReader<T> {
 
     protected url = ''
 
+    protected protocols: string[] | undefined = undefined
+
     protected connection: WebSocket | null = null
 
     protected retryTimer: ReturnType<typeof setTimeout> | null = null
@@ -56,7 +58,7 @@ export class StreamReader<T> {
 
         let connection: WebSocket
         try {
-            connection = new WebSocket(this.url)
+            connection = new WebSocket(this.url, this.protocols)
         } catch (err) {
             this.EE.emit('error', err)
             this.scheduleReconnect()
@@ -103,8 +105,10 @@ export class StreamReader<T> {
         })
     }
 
-    connect (url: string) {
-        if (this.url === url && this.connection != null) {
+    connect (url: string, protocols?: string[]) {
+        const protocolsChanged = (protocols ?? []).join('\u0000') !== (this.protocols ?? []).join('\u0000')
+
+        if (this.url === url && !protocolsChanged && this.connection != null) {
             return
         }
 
@@ -113,6 +117,7 @@ export class StreamReader<T> {
         }
 
         this.url = url
+        this.protocols = protocols
         this.destroyed = false
         this.clearRetryTimer()
 
