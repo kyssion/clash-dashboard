@@ -30,7 +30,7 @@ export function Provider (props: ProvidersProps) {
             await client.healthCheckProvider(provider.name, false)
 
             let finished = false
-            for (let i = 0; i < 60; i++) {
+            for (let i = 0; i < 120; i++) {
                 await new Promise(resolve => setTimeout(resolve, 500))
                 const status = await client.getProviderHealthCheckStatus(provider.name)
                 if (status.status === 204) {
