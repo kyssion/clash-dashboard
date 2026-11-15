@@ -19,7 +19,8 @@
 > `external-controller-cors.allow-origins`; `Host`/`X-Forwarded-Host` are not
 > trusted automatically. If the API is not at the parent path of `/ui/`, add
 > `<meta name="clash-api-base" content="/clash">` to the external UI's
-> `index.html`. WebSocket secrets are sent as a subprotocol, not in the URL.
+> `index.html`. WebSocket secrets are sent as a subprotocol, not in the URL;
+> legacy `?token=` WebSocket query authentication is no longer accepted.
 
 ## Features
 

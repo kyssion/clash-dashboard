@@ -1,5 +1,5 @@
 import classnames from 'classnames'
-import { useRef, useState, useMemo, useLayoutEffect, useEffect, type ReactNode } from 'react'
+import { useRef, useState, useMemo, useLayoutEffect, useEffect, useId, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
 import { Icon } from '@components'
@@ -26,7 +26,7 @@ interface SelectProps<T extends string | number> extends BaseComponentProps {
 
     disabled?: boolean
 
-    onSelect?: (value: T, e: React.MouseEvent<HTMLLIElement>) => void
+    onSelect?: (value: T, e?: React.MouseEvent<HTMLLIElement>) => void
 }
 
 export function Select<T extends string | number> (props: SelectProps<T>) {
@@ -34,6 +34,7 @@ export function Select<T extends string | number> (props: SelectProps<T>) {
 
     const portalRef = useRef<HTMLDivElement | null>(null)
     const targetRef = useRef<HTMLDivElement>(null)
+    const listboxId = useId()
 
     if (portalRef.current == null) {
         portalRef.current = document.createElement('div')
@@ -41,6 +42,12 @@ export function Select<T extends string | number> (props: SelectProps<T>) {
 
     const [showDropDownList, setShowDropDownList] = useState(false)
     const [dropdownListStyles, setDropdownListStyles] = useState<React.CSSProperties>({})
+    const [activeIndex, setActiveIndex] = useState(-1)
+
+    const selectedIndex = useMemo(
+        () => options.findIndex(option => option.value === value),
+        [options, value],
+    )
 
     useLayoutEffect(() => {
         const current = portalRef.current!
@@ -67,19 +74,77 @@ export function Select<T extends string | number> (props: SelectProps<T>) {
         return () => document.removeEventListener('mousedown', handleMouseDown)
     }, [showDropDownList])
 
+    useEffect(() => {
+        if (!showDropDownList || activeIndex < 0) {
+            return
+        }
+
+        const item = document.getElementById(`${listboxId}-option-${activeIndex}`)
+        item?.scrollIntoView({ block: 'nearest' })
+    }, [activeIndex, listboxId, showDropDownList])
+
+    function enabledIndex (start: number, step: number) {
+        if (options.length === 0) {
+            return -1
+        }
+
+        let index = start < 0 ? (step > 0 ? -1 : 0) : start
+        for (let i = 0; i < options.length; i++) {
+            index = (index + step + options.length) % options.length
+            if (!options[index].disabled) {
+                return index
+            }
+        }
+
+        return -1
+    }
+
+    function initialActiveIndex () {
+        if (selectedIndex >= 0 && !options[selectedIndex]?.disabled) {
+            return selectedIndex
+        }
+
+        return options.findIndex(option => !option.disabled)
+    }
+
+    function openDropDownList () {
+        if (disabled || targetRef.current == null) {
+            return
+        }
+
+        const targetRectInfo = targetRef.current.getBoundingClientRect()
+        setDropdownListStyles({
+            top: Math.floor(targetRectInfo.top + targetRectInfo.height) + 6,
+            left: Math.floor(targetRectInfo.left) - 10,
+        })
+        setActiveIndex(initialActiveIndex())
+        setShowDropDownList(true)
+    }
+
+    function closeDropDownList () {
+        setShowDropDownList(false)
+    }
+
     function handleShowDropList () {
         if (disabled) {
             return
         }
 
-        if (!showDropDownList) {
-            const targetRectInfo = targetRef.current!.getBoundingClientRect()
-            setDropdownListStyles({
-                top: Math.floor(targetRectInfo.top + targetRectInfo.height) + 6,
-                left: Math.floor(targetRectInfo.left) - 10,
-            })
+        if (showDropDownList) {
+            closeDropDownList()
+        } else {
+            openDropDownList()
         }
-        setShowDropDownList(!showDropDownList)
+    }
+
+    function selectOption (index: number, event?: React.MouseEvent<HTMLLIElement>) {
+        const option = options[index]
+        if (option == null || option.disabled) {
+            return
+        }
+
+        onSelect?.(option.value, event)
+        closeDropDownList()
     }
 
     function handleKeyDown (event: React.KeyboardEvent<HTMLDivElement>) {
@@ -87,11 +152,43 @@ export function Select<T extends string | number> (props: SelectProps<T>) {
             return
         }
 
-        if (event.key === 'Enter' || event.key === ' ' || event.key === 'ArrowDown') {
+        switch (event.key) {
+        case 'Enter':
+        case ' ':
             event.preventDefault()
-            handleShowDropList()
-        } else if (event.key === 'Escape') {
-            setShowDropDownList(false)
+            if (!showDropDownList) {
+                openDropDownList()
+            } else {
+                selectOption(activeIndex)
+            }
+            break
+        case 'ArrowDown':
+            event.preventDefault()
+            if (!showDropDownList) {
+                openDropDownList()
+            } else {
+                setActiveIndex(index => enabledIndex(index, 1))
+            }
+            break
+        case 'ArrowUp':
+            event.preventDefault()
+            if (!showDropDownList) {
+                openDropDownList()
+            } else {
+                setActiveIndex(index => enabledIndex(index, -1))
+            }
+            break
+        case 'Escape':
+            if (showDropDownList) {
+                event.preventDefault()
+                closeDropDownList()
+            }
+            break
+        case 'Tab':
+            if (showDropDownList) {
+                closeDropDownList()
+            }
+            break
         }
     }
 
@@ -105,16 +202,19 @@ export function Select<T extends string | number> (props: SelectProps<T>) {
             className={classnames('select-list', { 'select-list-show': showDropDownList })}
             style={dropdownListStyles}
         >
-            <ul className="list" role="listbox">
+            <ul className="list" role="listbox" id={listboxId}>
                 {
-                    options.map(option => (
+                    options.map((option, index) => (
                         <Option
-                            className={classnames({ selected: option.value === value })}
+                            className={classnames({
+                                selected: option.value === value,
+                                active: index === activeIndex,
+                            })}
                             selected={option.value === value}
-                            onClick={e => {
-                                onSelect?.(option.value, e)
-                                setShowDropDownList(false)
-                            }}
+                            active={index === activeIndex}
+                            id={`${listboxId}-option-${index}`}
+                            onClick={event => selectOption(index, event)}
+                            onMouseEnter={() => setActiveIndex(index)}
                             disabled={option.disabled}
                             key={option.key ?? option.value}
                             value={option.value}>
@@ -135,6 +235,8 @@ export function Select<T extends string | number> (props: SelectProps<T>) {
                 role="combobox"
                 aria-expanded={showDropDownList}
                 aria-haspopup="listbox"
+                aria-controls={listboxId}
+                aria-activedescendant={showDropDownList && activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined}
                 aria-disabled={disabled}
                 tabIndex={disabled ? -1 : 0}
                 onClick={handleShowDropList}
@@ -149,18 +251,32 @@ export function Select<T extends string | number> (props: SelectProps<T>) {
 }
 
 interface OptionProps<T> extends BaseComponentProps {
+    id?: string
     value: T
     disabled?: boolean
     selected?: boolean
+    active?: boolean
     onClick?: (e: React.MouseEvent<HTMLLIElement>) => void
+    onMouseEnter?: () => void
 }
 
 function Option<T> (props: OptionProps<T>) {
-    const { className: cn, style, disabled = false, selected = false, children, onClick = noop } = props
-    const className = classnames('option', { disabled }, cn)
+    const {
+        id,
+        className: cn,
+        style,
+        disabled = false,
+        selected = false,
+        active = false,
+        children,
+        onClick = noop,
+        onMouseEnter,
+    } = props
+    const className = classnames('option', { disabled, active }, cn)
 
     return (
         <li
+            id={id}
             className={className}
             style={style}
             role="option"
@@ -171,6 +287,7 @@ function Option<T> (props: OptionProps<T>) {
                     onClick(event)
                 }
             }}
+            onMouseEnter={onMouseEnter}
         >
             {children}
         </li>
