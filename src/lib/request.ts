@@ -193,8 +193,14 @@ export class Client {
         return await this.axiosClient.put<void>(`providers/rules/${encodeURIComponent(name)}`)
     }
 
-    async healthCheckProvider (name: string) {
-        return await this.axiosClient.get<void>(`providers/proxies/${encodeURIComponent(name)}/healthcheck`)
+    async healthCheckProvider (name: string, wait = true) {
+        return await this.axiosClient.get<void>(`providers/proxies/${encodeURIComponent(name)}/healthcheck`, {
+            params: wait ? undefined : { wait: 'false' },
+        })
+    }
+
+    async getProviderHealthCheckStatus (name: string) {
+        return await this.axiosClient.get<void>(`providers/proxies/${encodeURIComponent(name)}/healthcheck/status`)
     }
 
     async getProxies () {

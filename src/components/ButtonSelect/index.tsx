@@ -27,6 +27,7 @@ export function ButtonSelect (props: ButtonSelectProps) {
             {
                 options.map(option => (
                     <button
+                        type="button"
                         value={option.value}
                         key={option.value}
                         className={classnames('button-select-options', { actived: value === option.value })}

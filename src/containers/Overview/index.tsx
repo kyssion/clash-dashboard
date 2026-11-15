@@ -5,7 +5,7 @@ import { Card, Header } from '@components'
 import { formatTraffic } from '@lib/helper'
 import type * as API from '@lib/request'
 import { StreamReader } from '@lib/streamer'
-import { useAPISecret, useClient, useGeneral, useI18n, useVersion } from '@stores'
+import { getWebSocketBase, useAPISecret, useClient, useGeneral, useI18n, useVersion } from '@stores'
 import './style.scss'
 
 const chartWidth = 600
@@ -31,8 +31,7 @@ export default function Overview () {
     }
 
     const [points, setPoints] = useState<API.Traffic[]>([])
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const url = `${protocol}//${window.location.host}/traffic?token=${encodeURIComponent(secret)}`
+    const url = `${getWebSocketBase()}/traffic?token=${encodeURIComponent(secret)}`
 
     useEffect(() => {
         const reader = readerRef.current!

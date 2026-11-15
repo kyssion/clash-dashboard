@@ -13,7 +13,7 @@
 > the page's own origin — there is no external-controller connection dialog.
 >
 > If the controller has a `secret`, open
-> `http://127.0.0.1:9090/ui/?secret=YOUR_SECRET`.
+> `http://127.0.0.1:9090/ui/#/overview?secret=YOUR_SECRET`.
 
 ## Features
 

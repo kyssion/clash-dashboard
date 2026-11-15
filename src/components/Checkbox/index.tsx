@@ -14,12 +14,24 @@ export function Checkbox (props: CheckboxProps) {
     const { className, checked = false, onChange = noop } = props
     const classname = classnames('checkbox', { checked }, className)
 
-    function handleClick () {
+    function toggle () {
         onChange(!checked)
     }
 
     return (
-        <div className={classname} onClick={handleClick}>
+        <div
+            className={classname}
+            role="checkbox"
+            aria-checked={checked}
+            tabIndex={0}
+            onClick={toggle}
+            onKeyDown={event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    toggle()
+                }
+            }}
+        >
             <Icon className="checkbox-icon" type="check" size={18} />
             <div>{ props.children }</div>
         </div>

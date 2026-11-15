@@ -24,12 +24,30 @@ export function Provider (props: ProvidersProps) {
 
     const { visible, hide, show } = useVisible()
 
-    function handleHealthChech () {
+    async function handleHealthChech () {
         show()
-        client.healthCheckProvider(provider.name)
-            .then(async () => await update())
-            .catch(() => showError(t('providerActionError')))
-            .finally(() => hide())
+        try {
+            await client.healthCheckProvider(provider.name, false)
+
+            let finished = false
+            for (let i = 0; i < 60; i++) {
+                await new Promise(resolve => setTimeout(resolve, 500))
+                const status = await client.getProviderHealthCheckStatus(provider.name)
+                if (status.status === 204) {
+                    finished = true
+                    break
+                }
+            }
+
+            await update()
+            if (!finished) {
+                showError(t('providerActionError'))
+            }
+        } catch {
+            showError(t('providerActionError'))
+        } finally {
+            hide()
+        }
     }
 
     function handleUpdate () {
