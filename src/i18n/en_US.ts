@@ -82,6 +82,7 @@ const EN = {
         searchPlaceholder: 'Search rules',
         loading: 'Loading rules...',
         loadError: 'Failed to load rules',
+        providerLoadError: 'Failed to load rule providers',
         noResults: 'No matching rules',
         providerActionError: 'Provider operation failed',
     },

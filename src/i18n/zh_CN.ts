@@ -82,6 +82,7 @@ const CN = {
         searchPlaceholder: '搜索规则',
         loading: '加载规则中...',
         loadError: '规则加载失败',
+        providerLoadError: '规则集加载失败',
         noResults: '没有匹配的规则',
         providerActionError: '规则集操作失败',
     },

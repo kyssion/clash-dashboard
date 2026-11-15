@@ -76,7 +76,7 @@ export function useRuleProviders () {
     const [{ premium }] = useAtom(version)
     const client = useClient()
 
-    const { data, mutate } = useSWR(['/providers/rule', client, premium], async () => {
+    const { data, mutate, error, isLoading } = useSWR(['/providers/rule', client, premium], async () => {
         if (!premium) {
             return []
         }
@@ -87,7 +87,7 @@ export function useRuleProviders () {
             .map<API.RuleProvider>(name => ruleProviders.data.providers[name])
     })
 
-    return { providers: data ?? [], update: mutate }
+    return { providers: data ?? [], update: mutate, error, isLoading }
 }
 
 export const configAtom = atomWithStorage('profile', {

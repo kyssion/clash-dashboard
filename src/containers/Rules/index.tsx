@@ -10,13 +10,15 @@ import { Provider } from './Provider'
 import './style.scss'
 
 function RuleProviders () {
-    const { providers } = useRuleProviders()
+    const { providers, error, isLoading } = useRuleProviders()
     const { translation } = useI18n()
     const { t } = translation('Rules')
 
     return <>
+        {error && <Alert className="m-4" type="error" message={t('providerLoadError')} />}
+        {!error && isLoading && <div className="rules-empty">{t('loading')}</div>}
         {
-            providers.length !== 0 &&
+            !error && !isLoading && providers.length !== 0 &&
             <div className="flex flex-col">
                 <Header title={t('providerTitle')} />
                 <Card className="mt-4 rounded p-0 shadow-primary divide-y">
