@@ -2,7 +2,7 @@ import dayjs from 'dayjs'
 import { lowerCase } from 'lodash-es'
 import { useLayoutEffect, useEffect, useRef, useState } from 'react'
 
-import { Select, Card, Header } from '@components'
+import { Select, Card, Header, Button } from '@components'
 import { type Log } from '@models/Log'
 import { useConfig, useGeneral, useI18n, useLogsStreamReader } from '@stores'
 
@@ -53,6 +53,12 @@ export default function Logs () {
         autoScrollRef.current = ul.scrollTop + ul.clientHeight >= ul.scrollHeight - 10
     }
 
+    function handleClear () {
+        logsStreamReader.clear()
+        logsRef.current = []
+        setLogs([])
+    }
+
     useEffect(() => {
         function handleLog (newLogs: Log[]) {
             const logs = logsRef.current.concat(newLogs.map(d => ({ ...d, time: new Date() })))
@@ -78,6 +84,7 @@ export default function Logs () {
                     value={isConfigSilent ? 'silent' : logLevel}
                     onSelect={level => setConfig(c => { c.logLevel = level })}
                 />
+                <Button className="ml-2" onClick={handleClear}>{t('clear')}</Button>
             </Header>
 
             <Card className="mt-2.5 flex flex-1 flex-col md:mt-4">

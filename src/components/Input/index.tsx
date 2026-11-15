@@ -7,6 +7,7 @@ import './style.scss'
 
 interface InputProps extends BaseComponentProps {
     value?: string | number
+    placeholder?: string
     align?: 'left' | 'center' | 'right'
     inside?: boolean
     autoFocus?: boolean
@@ -22,6 +23,7 @@ export function Input (props: InputProps) {
         className,
         style,
         value = '',
+        placeholder = '',
         align = 'center',
         inside = false,
         autoFocus = false,
@@ -45,6 +47,7 @@ export function Input (props: InputProps) {
             className={classname}
             style={style}
             value={value}
+            placeholder={placeholder}
             autoFocus={autoFocus}
             type={type}
             onChange={event => onChange(event.target.value, event)}

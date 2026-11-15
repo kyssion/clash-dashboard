@@ -1,0 +1,134 @@
+.overview-cards {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 10px;
+
+    @media (max-width: 1100px) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    @media (max-width: 760px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.overview-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 18px 20px;
+
+    span {
+        color: $color-gray-darken;
+        font-size: 13px;
+    }
+
+    strong {
+        color: $color-primary-darken;
+        font-size: 20px;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+    }
+}
+
+.overview-chart-card {
+    margin-top: 14px;
+    padding: 20px 22px;
+}
+
+.overview-chart-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+
+    h2 {
+        color: $color-primary-darken;
+        font-size: 16px;
+    }
+}
+
+.overview-speed {
+    display: flex;
+    gap: 18px;
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: 600;
+
+    .up {
+        color: $color-green;
+    }
+
+    .down {
+        color: $color-primary-dark;
+    }
+}
+
+.overview-chart-hint {
+    color: $color-gray-darken;
+    font-size: 13px;
+}
+
+.overview-chart {
+    width: 100%;
+    height: 180px;
+    margin-top: 14px;
+    overflow: visible;
+    background: linear-gradient(180deg, rgba($color-primary-lightly, 0.35), rgba($color-primary-lightly, 0));
+    border-radius: 4px;
+
+    polyline {
+        fill: none;
+        stroke-width: 2;
+        stroke-linejoin: round;
+        stroke-linecap: round;
+        vector-effect: non-scaling-stroke;
+    }
+
+    .line-up {
+        stroke: $color-green;
+    }
+
+    .line-down {
+        stroke: $color-primary-dark;
+    }
+}
+
+.overview-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 180px;
+    margin-top: 14px;
+    color: $color-gray-darken;
+    font-size: 14px;
+}
+
+.overview-legend {
+    display: flex;
+    gap: 18px;
+    margin-top: 8px;
+    color: $color-gray-darken;
+    font-size: 12px;
+
+    span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    i {
+        width: 16px;
+        height: 2px;
+        border-radius: 1px;
+
+        &.up {
+            background: $color-green;
+        }
+
+        &.down {
+            background: $color-primary-dark;
+        }
+    }
+}

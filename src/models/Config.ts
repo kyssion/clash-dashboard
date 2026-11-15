@@ -86,6 +86,21 @@ export interface Data {
         redirPort?: number
 
         /**
+         * tproxy proxy port
+         */
+        tproxyPort?: number
+
+        /**
+         * controller bind address
+         */
+        bindAddress?: string
+
+        /**
+         * enable ipv6
+         */
+        ipv6?: boolean
+
+        /**
          * proxy is allow lan
          */
         allowLan: boolean
@@ -99,6 +114,11 @@ export interface Data {
          * clash tty log level
          */
         logLevel?: string
+
+        /**
+         * inbound authentication users
+         */
+        authentication?: string[]
     }
 
     proxy?: API.Proxy[]

@@ -135,6 +135,10 @@ export class StreamReader<T> {
         return this.innerBuffer.slice()
     }
 
+    clear () {
+        this.innerBuffer = []
+    }
+
     destroy () {
         this.destroyed = true
         this.clearRetryTimer()

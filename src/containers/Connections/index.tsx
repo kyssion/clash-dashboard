@@ -4,7 +4,7 @@ import classnames from 'classnames'
 import { groupBy } from 'lodash-es'
 import { useMemo, useLayoutEffect, useRef, useState, useEffect } from 'react'
 
-import { Header, Checkbox, Modal, Icon, Drawer, Card, Button } from '@components'
+import { Header, Checkbox, Modal, Icon, Drawer, Card, Button, Input } from '@components'
 import { fromNow } from '@lib/date'
 import { basePath, formatTraffic } from '@lib/helper'
 import { useObject, useVisible } from '@lib/hook'
@@ -101,6 +101,24 @@ export default function Connections () {
             .sort((a, b) => a.label.localeCompare(b.label))
     }, [connections])
 
+    const [keyword, setKeyword] = useState('')
+    const filteredData = useMemo(() => {
+        const query = keyword.trim().toLowerCase()
+        if (!query) {
+            return data
+        }
+
+        return data.filter(connection => [
+            connection.host,
+            connection.type,
+            connection.network,
+            connection.chains,
+            connection.rule,
+            connection.process,
+            connection.sourceIP,
+        ].some(value => value?.toLowerCase().includes(query)))
+    }, [data, keyword])
+
     // table
     const pinRef = useRef<HTMLTableCellElement>(null)
     const intersection = useIntersectionObserver(pinRef, { threshold: [1] })
@@ -169,7 +187,7 @@ export default function Connections () {
     })
 
     const instance = useReactTable({
-        data,
+        data: filteredData,
         columns,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
@@ -280,6 +298,12 @@ export default function Connections () {
     return (
         <div className="page !h-100vh">
             <Header title={t('title')}>
+                <Input
+                    className="connections-filter w-52 !cursor-text"
+                    value={keyword}
+                    placeholder={t('searchPlaceholder')}
+                    onChange={setKeyword}
+                />
                 <span className="connections-filter flex-1 cursor-default">
                     {`(${t('total.text')}: ${t('total.upload')} ${formatTraffic(traffic.uploadTotal)} ${t('total.download')} ${formatTraffic(traffic.downloadTotal)})`}
                 </span>

@@ -1,8 +1,9 @@
+import { useMemo, useState } from 'react'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import { FixedSizeList as List } from 'react-window'
 import useSWR from 'swr'
 
-import { Header, Card } from '@components'
+import { Header, Card, Input } from '@components'
 import { useClient, useI18n, useRule, useRuleProviders } from '@stores'
 
 import { Provider } from './Provider'
@@ -35,11 +36,25 @@ export default function Rules () {
     const client = useClient()
     const { translation } = useI18n()
     const { t } = translation('Rules')
+    const [keyword, setKeyword] = useState('')
 
     useSWR(['rules', client], update)
 
+    const filteredRules = useMemo(() => {
+        const query = keyword.trim().toLowerCase()
+        if (!query) {
+            return rules
+        }
+
+        return rules.filter(rule => (
+            rule.type.toLowerCase().includes(query) ||
+            rule.payload.toLowerCase().includes(query) ||
+            rule.proxy.toLowerCase().includes(query)
+        ))
+    }, [keyword, rules])
+
     function renderRuleItem ({ index, style }: { index: number, style: React.CSSProperties }) {
-        const rule = rules[index]
+        const rule = filteredRules[index]
         return (
             <li className="rule-item" style={style}>
                 <div className="flex py-1">
@@ -54,7 +69,17 @@ export default function Rules () {
     return (
         <div className="page">
             <RuleProviders />
-            <Header className="not-first:mt-7.5" title={t('title')} />
+            <Header className="not-first:mt-7.5" title={t('title')}>
+                <Input
+                    className="w-64"
+                    value={keyword}
+                    placeholder={t('searchPlaceholder')}
+                    onChange={setKeyword}
+                />
+                <span className="ml-3 text-sm text-primary-darken">
+                    {filteredRules.length} / {rules.length}
+                </span>
+            </Header>
             <Card className="mt-2.5 flex flex-1 flex-col p-0 md:mt-4 focus:outline-none">
                 <AutoSizer className="min-h-120">
                     {
@@ -62,7 +87,7 @@ export default function Rules () {
                             <List
                                 height={height ?? 0}
                                 width={width ?? 0}
-                                itemCount={rules.length}
+                                itemCount={filteredRules.length}
                                 itemSize={50}
                             >
                                 { renderRuleItem }

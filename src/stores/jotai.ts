@@ -124,9 +124,13 @@ export function useGeneral () {
             socksPort: data['socks-port'],
             mixedPort: data['mixed-port'] ?? 0,
             redirPort: data['redir-port'],
+            tproxyPort: data['tproxy-port'],
+            bindAddress: data['bind-address'],
+            ipv6: data.ipv6,
             mode: data.mode.toLowerCase() as Models.Data['general']['mode'],
             logLevel: data['log-level'],
             allowLan: data['allow-lan'],
+            authentication: data.authentication ?? [],
         } as Models.Data['general']
     })
 

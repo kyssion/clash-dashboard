@@ -4,10 +4,39 @@ export interface Config {
     port: number
     'socks-port': number
     'redir-port': number
+    'tproxy-port': number
     'mixed-port': number
     'allow-lan': boolean
+    'bind-address': string
+    ipv6: boolean
     mode: string
     'log-level': string
+    authentication: string[]
+}
+
+export interface Traffic {
+    up: number
+    down: number
+}
+
+export interface DNSRecord {
+    name: string
+    type: number
+    TTL: number
+    data: string
+}
+
+export interface DNSResult {
+    Status: number
+    Question?: Array<{ Name: string, Qtype: number, Qclass: number }>
+    TC: boolean
+    RD: boolean
+    RA: boolean
+    AD: boolean
+    CD: boolean
+    Answer?: DNSRecord[]
+    Authority?: DNSRecord[]
+    Additional?: DNSRecord[]
 }
 
 export interface Rules {
@@ -116,6 +145,16 @@ export class Client {
         return await this.axiosClient.patch<void>('configs', config)
     }
 
+    async reloadConfig () {
+        return await this.axiosClient.put<void>('configs', {}, { params: { force: true } })
+    }
+
+    async queryDNS (name: string, type: string) {
+        return await this.axiosClient.get<DNSResult>('dns/query', {
+            params: { name, type },
+        })
+    }
+
     async getRules () {
         return await this.axiosClient.get<Rules>('rules')
     }
@@ -177,6 +216,18 @@ export class Client {
                 url: 'http://www.gstatic.com/generate_204',
             },
         })
+    }
+
+    async getProviderProxyDelay (providerName: string, name: string) {
+        return await this.axiosClient.get<{ delay: number }>(
+            `providers/proxies/${encodeURIComponent(providerName)}/${encodeURIComponent(name)}/healthcheck`,
+            {
+                params: {
+                    timeout: 5000,
+                    url: 'http://www.gstatic.com/generate_204',
+                },
+            },
+        )
     }
 
     async closeAllConnections () {

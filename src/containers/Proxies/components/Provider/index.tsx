@@ -59,7 +59,7 @@ export function Provider (props: ProvidersProps) {
                 {
                     proxies.map((p: IProxy) => (
                         <li key={p.name}>
-                            <Proxy className="proxy-provider-item" config={p} />
+                            <Proxy className="proxy-provider-item" config={p} providerName={provider.name} />
                         </li>
                     ))
                 }

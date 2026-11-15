@@ -13,6 +13,7 @@ import './style.scss'
 
 interface ProxyProps extends BaseComponentProps {
     config: IProxy
+    providerName?: string
 }
 
 const TagColors = {
@@ -23,15 +24,17 @@ const TagColors = {
 }
 
 export function Proxy (props: ProxyProps) {
-    const { config, className } = props
+    const { config, className, providerName } = props
     const { set } = useProxy()
     const setProviders = useSetAtom(proxyProvider)
     const client = useClient()
 
     const getDelay = useCallback(async (name: string) => {
-        const { data: { delay } } = await client.getProxyDelay(name)
+        const { data: { delay } } = providerName
+            ? await client.getProviderProxyDelay(providerName, name)
+            : await client.getProxyDelay(name)
         return delay
-    }, [client])
+    }, [client, providerName])
 
     const speedTest = useCallback(async function () {
         const result = await ResultAsync.fromPromise(getDelay(config.name), e => e as AxiosError)
