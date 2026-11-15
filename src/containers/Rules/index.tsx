@@ -3,7 +3,7 @@ import AutoSizer from 'react-virtualized-auto-sizer'
 import { FixedSizeList as List } from 'react-window'
 import useSWR from 'swr'
 
-import { Header, Card, Input } from '@components'
+import { Alert, Header, Card, Input } from '@components'
 import { useClient, useI18n, useRule, useRuleProviders } from '@stores'
 
 import { Provider } from './Provider'
@@ -38,7 +38,7 @@ export default function Rules () {
     const { t } = translation('Rules')
     const [keyword, setKeyword] = useState('')
 
-    useSWR(['rules', client], update)
+    const { error, isLoading } = useSWR(['rules', client], update)
 
     const filteredRules = useMemo(() => {
         const query = keyword.trim().toLowerCase()
@@ -81,7 +81,9 @@ export default function Rules () {
                 </span>
             </Header>
             <Card className="rules-card mt-2.5 flex flex-1 flex-col p-0 md:mt-4 focus:outline-none">
-                {filteredRules.length === 0 && <div className="rules-empty">{t('noResults')}</div>}
+                {error && <Alert className="m-4" type="error" message={t('loadError')} />}
+                {!error && isLoading && rules.length === 0 && <div className="rules-empty">{t('loading')}</div>}
+                {!error && !isLoading && filteredRules.length === 0 && <div className="rules-empty">{t('noResults')}</div>}
                 <AutoSizer className="min-h-120">
                     {
                         ({ height, width }) => (

@@ -20,8 +20,8 @@ export default function Overview () {
     const { general } = useGeneral()
     const { version } = useVersion()
 
-    const { data: snapshot } = useSWR(['overview-connections', client], async () => {
-        const resp = await client.getConnections()
+    const { data: summary } = useSWR(['overview-connections', client], async () => {
+        const resp = await client.getConnectionsSummary()
         return resp.data
     }, { refreshInterval: 5000 })
 
@@ -86,15 +86,15 @@ export default function Overview () {
                 </Card>
                 <Card className="overview-card">
                     <span>{t('connections')}</span>
-                    <strong>{snapshot?.connections.length ?? 0}</strong>
+                    <strong>{summary?.connections ?? 0}</strong>
                 </Card>
                 <Card className="overview-card">
                     <span>{t('uploadTotal')}</span>
-                    <strong>{formatTraffic(snapshot?.uploadTotal ?? 0)}</strong>
+                    <strong>{formatTraffic(summary?.uploadTotal ?? 0)}</strong>
                 </Card>
                 <Card className="overview-card">
                     <span>{t('downloadTotal')}</span>
-                    <strong>{formatTraffic(snapshot?.downloadTotal ?? 0)}</strong>
+                    <strong>{formatTraffic(summary?.downloadTotal ?? 0)}</strong>
                 </Card>
             </div>
 

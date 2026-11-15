@@ -1,27 +1,26 @@
-import { useAtom } from 'jotai'
 import { useMemo } from 'react'
 
 import { Tags, Tag } from '@components'
-import { type Group as IGroup } from '@lib/request'
-import { useProxy, useConfig, proxyMapping, useClient } from '@stores'
+import { type Group as IGroup, type Proxy as IProxy } from '@lib/request'
+import { useClient } from '@stores'
 
 import './style.scss'
 
 interface GroupProps {
     config: IGroup
+    breakConnections: boolean
+    proxyMap: Map<string, IProxy>
+    markProxySelected: (name: string, selected: string) => void
 }
 
 export function Group (props: GroupProps) {
-    const { markProxySelected } = useProxy()
-    const [proxyMap] = useAtom(proxyMapping)
-    const { data: Config } = useConfig()
     const client = useClient()
-    const { config } = props
+    const { config, breakConnections, proxyMap, markProxySelected } = props
 
     async function handleChangeProxySelected (name: string) {
         await client.changeProxySelected(props.config.name, name)
         markProxySelected(props.config.name, name)
-        if (Config.breakConnections) {
+        if (breakConnections) {
             const list: string[] = []
             const snapshot = await client.getConnections()
             for (const connection of snapshot.data.connections) {

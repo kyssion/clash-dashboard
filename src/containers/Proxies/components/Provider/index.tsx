@@ -6,20 +6,20 @@ import { Proxy } from '@containers/Proxies/components/Proxy'
 import { fromNow } from '@lib/date'
 import { useVisible } from '@lib/hook'
 import { type Provider as IProvider, type Proxy as IProxy } from '@lib/request'
-import { useClient, useI18n, useProxyProviders } from '@stores'
+import { useClient, useI18n } from '@stores'
 
 import './style.scss'
 
 interface ProvidersProps {
     provider: IProvider
+    update: () => Promise<unknown>
 }
 
 export function Provider (props: ProvidersProps) {
-    const { update } = useProxyProviders()
     const { translation, lang } = useI18n()
     const client = useClient()
 
-    const { provider } = props
+    const { provider, update } = props
     const { t } = translation('Proxies')
 
     const { visible, hide, show } = useVisible()

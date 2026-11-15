@@ -48,17 +48,28 @@ export function useVersion () {
     const [data, set] = useAtom(version)
     const client = useClient()
 
-    useSWR([client], async function () {
+    const { data: fetched, error } = useSWR([client], async function () {
         const result = await ResultAsync.fromPromise(client.getVersion(), e => e as AxiosError)
+        if (result.isErr()) {
+            return { version: '', premium: false }
+        }
 
-        set(
-            result.isErr()
-                ? { version: '', premium: false }
-                : { version: result.value.data.version, premium: !!result.value.data.premium },
-        )
+        return { version: result.value.data.version, premium: !!result.value.data.premium }
     })
 
-    return data
+    useEffect(() => {
+        if (fetched) {
+            set(fetched)
+        } else if (error) {
+            set({ version: '', premium: false })
+        }
+    }, [error, fetched, set])
+
+    if (error) {
+        return { version: '', premium: false }
+    }
+
+    return fetched ?? data
 }
 
 export function useRuleProviders () {

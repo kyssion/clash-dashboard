@@ -7,13 +7,14 @@ import { useMemo, useLayoutEffect, useCallback } from 'react'
 import EE, { Action } from '@lib/event'
 import { type Proxy as IProxy } from '@lib/request'
 import { type BaseComponentProps } from '@models'
-import { useClient, useProxy, proxyProvider } from '@stores'
+import { useClient, proxyProvider } from '@stores'
 
 import './style.scss'
 
 interface ProxyProps extends BaseComponentProps {
     config: IProxy
     providerName?: string
+    onSpeedTest?: (name: string, history: IProxy['history'][number]) => void
 }
 
 const TagColors = {
@@ -24,8 +25,7 @@ const TagColors = {
 }
 
 export function Proxy (props: ProxyProps) {
-    const { config, className, providerName } = props
-    const { set } = useProxy()
+    const { config, className, providerName, onSpeedTest } = props
     const setProviders = useSetAtom(proxyProvider)
     const client = useClient()
 
@@ -48,12 +48,7 @@ export function Proxy (props: ProxyProps) {
         }
 
         if (providerName == null) {
-            set(draft => {
-                const proxy = draft.proxies.find(p => p.name === config.name)
-                if (proxy != null) {
-                    proxy.history.push(history)
-                }
-            })
+            onSpeedTest?.(config.name, history)
             return
         }
 
@@ -69,7 +64,7 @@ export function Proxy (props: ProxyProps) {
                 }
                 : provider
         )))
-    }, [config.name, getDelay, providerName, set, setProviders])
+    }, [config.name, getDelay, onSpeedTest, providerName, setProviders])
 
     const delay = config.history?.length ? config.history.slice(-1)[0].delay : 0
     const meanDelay = config.history?.length ? config.history.slice(-1)[0].meanDelay : undefined

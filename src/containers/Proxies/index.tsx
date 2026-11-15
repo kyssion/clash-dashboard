@@ -1,10 +1,11 @@
-import { useMemo } from 'react'
+import { useAtom } from 'jotai'
+import { useCallback, useMemo } from 'react'
 
 import { Card, Header, Icon, Checkbox } from '@components'
 import EE from '@lib/event'
 import { useRound } from '@lib/hook'
 import type * as API from '@lib/request'
-import { useI18n, useConfig, useProxy, useProxyProviders, useGeneral } from '@stores'
+import { proxyMapping, useI18n, useConfig, useProxy, useProxyProviders, useGeneral } from '@stores'
 
 import { Proxy, Group, Provider } from './components'
 import './style.scss'
@@ -30,8 +31,9 @@ export function compareDesc (a: API.Proxy, b: API.Proxy) {
 }
 
 function ProxyGroups () {
-    const { groups, global } = useProxy()
+    const { groups, global, markProxySelected } = useProxy()
     const { data: config, set: setConfig } = useConfig()
+    const [proxyMap] = useAtom(proxyMapping)
     const { general } = useGeneral()
     const { translation } = useI18n()
     const { t } = translation('Proxies')
@@ -58,7 +60,11 @@ function ProxyGroups () {
                         {
                             list.map(p => (
                                 <li key={p.name}>
-                                    <Group config={p} />
+                                    <Group
+                                        config={p}
+                                        breakConnections={config.breakConnections}
+                                        proxyMap={proxyMap}
+                                        markProxySelected={markProxySelected} />
                                 </li>
                             ))
                         }
@@ -70,7 +76,7 @@ function ProxyGroups () {
 }
 
 function ProxyProviders () {
-    const { providers } = useProxyProviders()
+    const { providers, update } = useProxyProviders()
     const { translation: useTranslation } = useI18n()
     const { t } = useTranslation('Proxies')
 
@@ -83,7 +89,7 @@ function ProxyProviders () {
                     {
                         providers.map(p => (
                             <li className="my-2.5 md:my-4" key={p.name}>
-                                <Provider provider={p} />
+                                <Provider provider={p} update={update} />
                             </li>
                         ))
                     }
@@ -94,9 +100,18 @@ function ProxyProviders () {
 }
 
 function Proxies () {
-    const { proxies } = useProxy()
+    const { proxies, set } = useProxy()
     const { translation: useTranslation } = useI18n()
     const { t } = useTranslation('Proxies')
+
+    const updateProxyHistory = useCallback((name: string, history: API.Proxy['history'][number]) => {
+        set(draft => {
+            const proxy = draft.proxies.find(p => p.name === name)
+            if (proxy != null) {
+                proxy.history.push(history)
+            }
+        })
+    }, [set])
 
     function handleNotitySpeedTest () {
         EE.notifySpeedTest()
@@ -130,7 +145,7 @@ function Proxies () {
                     {
                         sortedProxies.map(p => (
                             <li key={p.name}>
-                                <Proxy config={p} />
+                                <Proxy config={p} onSpeedTest={updateProxyHistory} />
                             </li>
                         ))
                     }

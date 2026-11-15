@@ -106,6 +106,12 @@ export interface Snapshot {
     connections: Connections[]
 }
 
+export interface ConnectionSummary {
+    connections: number
+    uploadTotal: number
+    downloadTotal: number
+}
+
 export interface Connections {
     id: string
     metadata: {
@@ -246,6 +252,10 @@ export class Client {
 
     async getConnections () {
         return await this.axiosClient.get<Snapshot>('connections')
+    }
+
+    async getConnectionsSummary () {
+        return await this.axiosClient.get<ConnectionSummary>('connections/summary')
     }
 
     async changeProxySelected (name: string, select: string) {

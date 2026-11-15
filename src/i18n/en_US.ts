@@ -80,6 +80,8 @@ const EN = {
         providerUpdateTime: 'Last updated at',
         ruleCount: 'Rule count',
         searchPlaceholder: 'Search rules',
+        loading: 'Loading rules...',
+        loadError: 'Failed to load rules',
         noResults: 'No matching rules',
         providerActionError: 'Provider operation failed',
     },
