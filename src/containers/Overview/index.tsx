@@ -23,7 +23,7 @@ export default function Overview () {
     const { data: snapshot } = useSWR(['overview-connections', client], async () => {
         const resp = await client.getConnections()
         return resp.data
-    }, { refreshInterval: 2000 })
+    }, { refreshInterval: 5000 })
 
     const readerRef = useRef<StreamReader<API.Traffic> | null>(null)
     if (readerRef.current == null) {
@@ -54,6 +54,9 @@ export default function Overview () {
         () => Math.max(1024, ...points.flatMap(point => [point.up, point.down])),
         [points],
     )
+
+    const lastPoint = points[points.length - 1]
+    const lastY = (value: number) => chartHeight - (value / maxValue) * (chartHeight - 10)
 
     const chartPoints = useMemo(() => {
         function line (key: 'up' | 'down') {
@@ -119,6 +122,12 @@ export default function Overview () {
                         >
                             <polyline className="line-up" points={chartPoints.up} />
                             <polyline className="line-down" points={chartPoints.down} />
+                            {lastPoint != null && (
+                                <>
+                                    <circle className="dot-up" cx={chartWidth} cy={lastY(lastPoint.up)} r={3} />
+                                    <circle className="dot-down" cx={chartWidth} cy={lastY(lastPoint.down)} r={3} />
+                                </>
+                            )}
                         </svg>
                     )}
                 <div className="overview-legend">

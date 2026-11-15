@@ -57,6 +57,10 @@ export default function Logs () {
         logsStreamReader.clear()
         logsRef.current = []
         setLogs([])
+        autoScrollRef.current = true
+        if (listRef.current != null) {
+            listRef.current.scrollTop = 0
+        }
     }
 
     useEffect(() => {

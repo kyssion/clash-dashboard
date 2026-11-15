@@ -93,6 +93,14 @@
     .line-down {
         stroke: $color-primary-dark;
     }
+
+    .dot-up {
+        fill: $color-green;
+    }
+
+    .dot-down {
+        fill: $color-primary-dark;
+    }
 }
 
 .overview-empty {

@@ -46,6 +46,7 @@ export default function App () {
                         route => <Route path={route.path} key={route.path} element={route.element} />,
                     )
                 }
+                <Route path="*" element={<Navigate to="/overview" replace />} />
             </Route>
         </Routes>
     )

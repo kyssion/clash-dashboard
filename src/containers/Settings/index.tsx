@@ -15,6 +15,7 @@ import {
 } from '@components'
 import { type Lang } from '@i18n'
 import { useObject } from '@lib/hook'
+import { type Config } from '@lib/request'
 import { useI18n, useGeneral, useVersion, useClient } from '@stores'
 import './style.scss'
 
@@ -30,6 +31,10 @@ const logLevelOptions = [
 
 function isValidPort (port: number) {
     return Number.isInteger(port) && port >= 0 && port <= 65535
+}
+
+function displayPort (port: number) {
+    return Number.isNaN(port) ? '' : port
 }
 
 export default function Settings () {
@@ -48,18 +53,32 @@ export default function Settings () {
         bindAddress: '*',
     })
 
+    const configLoaded = general?.port != null || general?.socksPort != null
+
     useEffect(() => {
+        if (!configLoaded) {
+            return
+        }
+
         set('socks5ProxyPort', general?.socksPort ?? 0)
         set('httpProxyPort', general?.port ?? 0)
         set('mixedProxyPort', general?.mixedPort ?? 0)
         set('redirProxyPort', general?.redirPort ?? 0)
         set('tproxyProxyPort', general?.tproxyPort ?? 0)
         set('bindAddress', general?.bindAddress ?? '*')
-    }, [general, set])
+    }, [configLoaded, general, set])
+
+    async function saveConfig (config: Partial<Config>) {
+        try {
+            await client.updateConfig(config)
+            await fetchGeneral()
+        } catch {
+            showError(t('updateError'))
+        }
+    }
 
     async function handleProxyModeChange (mode: string) {
-        await client.updateConfig({ mode })
-        await fetchGeneral()
+        await saveConfig({ mode })
     }
 
     function changeLanguage (language: Lang) {
@@ -71,9 +90,11 @@ export default function Settings () {
             set('httpProxyPort', general?.port ?? 0)
             return
         }
+        if (info.httpProxyPort === general?.port) {
+            return
+        }
 
-        await client.updateConfig({ port: info.httpProxyPort })
-        await fetchGeneral()
+        await saveConfig({ port: info.httpProxyPort })
     }
 
     async function handleSocksPortSave () {
@@ -81,9 +102,11 @@ export default function Settings () {
             set('socks5ProxyPort', general?.socksPort ?? 0)
             return
         }
+        if (info.socks5ProxyPort === general?.socksPort) {
+            return
+        }
 
-        await client.updateConfig({ 'socks-port': info.socks5ProxyPort })
-        await fetchGeneral()
+        await saveConfig({ 'socks-port': info.socks5ProxyPort })
     }
 
     async function handleMixedPortSave () {
@@ -91,9 +114,11 @@ export default function Settings () {
             set('mixedProxyPort', general?.mixedPort ?? 0)
             return
         }
+        if (info.mixedProxyPort === general?.mixedPort) {
+            return
+        }
 
-        await client.updateConfig({ 'mixed-port': info.mixedProxyPort })
-        await fetchGeneral()
+        await saveConfig({ 'mixed-port': info.mixedProxyPort })
     }
 
     async function handleRedirPortSave () {
@@ -101,9 +126,11 @@ export default function Settings () {
             set('redirProxyPort', general?.redirPort ?? 0)
             return
         }
+        if (info.redirProxyPort === general?.redirPort) {
+            return
+        }
 
-        await client.updateConfig({ 'redir-port': info.redirProxyPort })
-        await fetchGeneral()
+        await saveConfig({ 'redir-port': info.redirProxyPort })
     }
 
     async function handleTProxyPortSave () {
@@ -111,34 +138,45 @@ export default function Settings () {
             set('tproxyProxyPort', general?.tproxyPort ?? 0)
             return
         }
-
-        await client.updateConfig({ 'tproxy-port': info.tproxyProxyPort })
-        await fetchGeneral()
-    }
-
-    async function handleBindAddressSave () {
-        if (!info.bindAddress.trim()) {
-            set('bindAddress', general?.bindAddress ?? '*')
+        if (info.tproxyProxyPort === general?.tproxyPort) {
             return
         }
 
-        await client.updateConfig({ 'bind-address': info.bindAddress.trim() })
-        await fetchGeneral()
+        await saveConfig({ 'tproxy-port': info.tproxyProxyPort })
+    }
+
+    async function handleBindAddressSave () {
+        const bindAddress = info.bindAddress.trim()
+        if (!bindAddress) {
+            set('bindAddress', general?.bindAddress ?? '*')
+            return
+        }
+        if (bindAddress === general?.bindAddress) {
+            return
+        }
+
+        await saveConfig({ 'bind-address': bindAddress })
     }
 
     async function handleAllowLanChange (state: boolean) {
-        await client.updateConfig({ 'allow-lan': state })
-        await fetchGeneral()
+        if (state === general?.allowLan) {
+            return
+        }
+        await saveConfig({ 'allow-lan': state })
     }
 
     async function handleIPv6Change (state: boolean) {
-        await client.updateConfig({ ipv6: state })
-        await fetchGeneral()
+        if (state === general?.ipv6) {
+            return
+        }
+        await saveConfig({ ipv6: state })
     }
 
     async function handleLogLevelChange (level: string) {
-        await client.updateConfig({ 'log-level': level })
-        await fetchGeneral()
+        if (level === general?.logLevel) {
+            return
+        }
+        await saveConfig({ 'log-level': level })
     }
 
     async function handleReloadConfig () {
@@ -218,8 +256,8 @@ export default function Settings () {
                         <span className="label font-bold">{t('labels.socks5ProxyPort')}</span>
                         <Input
                             className="w-28"
-                            value={info.socks5ProxyPort}
-                            onChange={socks5ProxyPort => set('socks5ProxyPort', +socks5ProxyPort)}
+                            value={displayPort(info.socks5ProxyPort)}
+                            onChange={socks5ProxyPort => set('socks5ProxyPort', socks5ProxyPort === '' ? NaN : +socks5ProxyPort)}
                             onBlur={handleSocksPortSave}
                         />
                     </div>
@@ -229,8 +267,8 @@ export default function Settings () {
                         <span className="label font-bold">{t('labels.httpProxyPort')}</span>
                         <Input
                             className="w-28"
-                            value={info.httpProxyPort}
-                            onChange={httpProxyPort => set('httpProxyPort', +httpProxyPort)}
+                            value={displayPort(info.httpProxyPort)}
+                            onChange={httpProxyPort => set('httpProxyPort', httpProxyPort === '' ? NaN : +httpProxyPort)}
                             onBlur={handleHttpPortSave}
                         />
                     </div>
@@ -238,8 +276,8 @@ export default function Settings () {
                         <span className="label font-bold">{t('labels.mixedProxyPort')}</span>
                         <Input
                             className="w-28"
-                            value={info.mixedProxyPort}
-                            onChange={mixedProxyPort => set('mixedProxyPort', +mixedProxyPort)}
+                            value={displayPort(info.mixedProxyPort)}
+                            onChange={mixedProxyPort => set('mixedProxyPort', mixedProxyPort === '' ? NaN : +mixedProxyPort)}
                             onBlur={handleMixedPortSave}
                         />
                     </div>
@@ -267,8 +305,8 @@ export default function Settings () {
                         <span className="label font-bold">{t('labels.redirProxyPort')}</span>
                         <Input
                             className="w-28"
-                            value={info.redirProxyPort}
-                            onChange={redirProxyPort => set('redirProxyPort', +redirProxyPort)}
+                            value={displayPort(info.redirProxyPort)}
+                            onChange={redirProxyPort => set('redirProxyPort', redirProxyPort === '' ? NaN : +redirProxyPort)}
                             onBlur={handleRedirPortSave}
                         />
                     </div>
@@ -276,8 +314,8 @@ export default function Settings () {
                         <span className="label font-bold">{t('labels.tproxyProxyPort')}</span>
                         <Input
                             className="w-28"
-                            value={info.tproxyProxyPort}
-                            onChange={tproxyProxyPort => set('tproxyProxyPort', +tproxyProxyPort)}
+                            value={displayPort(info.tproxyProxyPort)}
+                            onChange={tproxyProxyPort => set('tproxyProxyPort', tproxyProxyPort === '' ? NaN : +tproxyProxyPort)}
                             onBlur={handleTProxyPortSave}
                         />
                     </div>

@@ -30,31 +30,46 @@ export function Proxy (props: ProxyProps) {
     const client = useClient()
 
     const getDelay = useCallback(async (name: string) => {
-        const { data: { delay } } = providerName
+        const response = providerName
             ? await client.getProviderProxyDelay(providerName, name)
             : await client.getProxyDelay(name)
-        return delay
+        return response.data
     }, [client, providerName])
 
     const speedTest = useCallback(async function () {
         const result = await ResultAsync.fromPromise(getDelay(config.name), e => e as AxiosError)
+        const record = result.isErr()
+            ? { delay: 0, meanDelay: undefined }
+            : result.value
+        const history = {
+            time: Date.now().toString(),
+            delay: record.delay,
+            meanDelay: record.meanDelay,
+        }
 
-        const validDelay = result.isErr() ? 0 : result.value
-        set(draft => {
-            const proxy = draft.proxies.find(p => p.name === config.name)
-            if (proxy != null) {
-                proxy.history.push({ time: Date.now().toString(), delay: validDelay })
-            }
-        })
-        setProviders(providers => providers.map(provider => ({
-            ...provider,
-            proxies: provider.proxies.map(proxy => (
-                proxy.name === config.name
-                    ? { ...proxy, history: [...proxy.history, { time: Date.now().toString(), delay: validDelay }] }
-                    : proxy
-            )),
-        })))
-    }, [config.name, getDelay, set, setProviders])
+        if (providerName == null) {
+            set(draft => {
+                const proxy = draft.proxies.find(p => p.name === config.name)
+                if (proxy != null) {
+                    proxy.history.push(history)
+                }
+            })
+            return
+        }
+
+        setProviders(providers => providers.map(provider => (
+            provider.name === providerName
+                ? {
+                    ...provider,
+                    proxies: provider.proxies.map(proxy => (
+                        proxy.name === config.name
+                            ? { ...proxy, history: [...proxy.history, history] }
+                            : proxy
+                    )),
+                }
+                : provider
+        )))
+    }, [config.name, getDelay, providerName, set, setProviders])
 
     const delay = config.history?.length ? config.history.slice(-1)[0].delay : 0
     const meanDelay = config.history?.length ? config.history.slice(-1)[0].meanDelay : undefined

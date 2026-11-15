@@ -210,7 +210,7 @@ export class Client {
     }
 
     async getProxyDelay (name: string) {
-        return await this.axiosClient.get<{ delay: number }>(`proxies/${encodeURIComponent(name)}/delay`, {
+        return await this.axiosClient.get<{ delay: number, meanDelay?: number }>(`proxies/${encodeURIComponent(name)}/delay`, {
             params: {
                 timeout: 5000,
                 url: 'http://www.gstatic.com/generate_204',
@@ -219,7 +219,7 @@ export class Client {
     }
 
     async getProviderProxyDelay (providerName: string, name: string) {
-        return await this.axiosClient.get<{ delay: number }>(
+        return await this.axiosClient.get<{ delay: number, meanDelay?: number }>(
             `providers/proxies/${encodeURIComponent(providerName)}/${encodeURIComponent(name)}/healthcheck`,
             {
                 params: {

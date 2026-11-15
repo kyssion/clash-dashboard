@@ -1,5 +1,5 @@
 import { isAxiosError } from 'axios'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import { Header, Card, Input, Select, Button } from '@components'
 import type * as API from '@lib/request'
@@ -46,7 +46,14 @@ function getErrorMessage (error: unknown) {
     return error instanceof Error ? error.message : String(error)
 }
 
-function RecordTable ({ title, records }: { title: string, records?: API.DNSRecord[] }) {
+interface RecordLabels {
+    name: string
+    type: string
+    ttl: string
+    data: string
+}
+
+function RecordTable ({ title, records, labels }: { title: string, records?: API.DNSRecord[], labels: RecordLabels }) {
     const visibleRecords = records?.filter(record => record.type !== 41) ?? []
     if (!visibleRecords.length) {
         return null
@@ -59,10 +66,10 @@ function RecordTable ({ title, records }: { title: string, records?: API.DNSReco
                 <table className="dns-table">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Type</th>
-                            <th>TTL</th>
-                            <th>Data</th>
+                            <th>{labels.name}</th>
+                            <th>{labels.type}</th>
+                            <th>{labels.ttl}</th>
+                            <th>{labels.data}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -92,23 +99,57 @@ export default function Dns () {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [result, setResult] = useState<API.DNSResult | null>(null)
+    const requestId = useRef(0)
+
+    function invalidateResult () {
+        requestId.current += 1
+        setResult(null)
+        setError(null)
+        setLoading(false)
+    }
+
+    function handleNameChange (value: string) {
+        setName(value)
+        invalidateResult()
+    }
+
+    function handleTypeChange (value: string) {
+        setType(value)
+        invalidateResult()
+    }
 
     async function handleQuery () {
         if (!name.trim() || loading) {
             return
         }
 
+        const currentRequest = ++requestId.current
         setLoading(true)
         setError(null)
         try {
             const resp = await client.queryDNS(name.trim(), type)
+            if (currentRequest !== requestId.current) {
+                return
+            }
             setResult(resp.data)
         } catch (err) {
+            if (currentRequest !== requestId.current) {
+                return
+            }
             setResult(null)
             setError(getErrorMessage(err))
         } finally {
-            setLoading(false)
+            if (currentRequest === requestId.current) {
+                setLoading(false)
+            }
         }
+    }
+
+    const recordLabels: RecordLabels = {
+        name: t('name'),
+        type: t('type'),
+        ttl: t('ttl'),
+        data: t('data'),
     }
 
     return (
@@ -120,14 +161,14 @@ export default function Dns () {
                         className="flex-1"
                         value={name}
                         placeholder={t('placeholder')}
-                        onChange={setName}
+                        onChange={handleNameChange}
                         onEnter={handleQuery}
                     />
                     <Select
                         className="w-28"
                         options={queryTypes}
                         value={type}
-                        onSelect={setType}
+                        onSelect={handleTypeChange}
                     />
                     <Button type="primary" disabled={loading || !name.trim()} onClick={handleQuery}>
                         {loading ? t('querying') : t('query')}
@@ -153,9 +194,9 @@ export default function Dns () {
                             result.CD && 'CD',
                         ].filter(Boolean).join(' ') || '-'}</span>
                     </div>
-                    <RecordTable title={t('answer')} records={result.Answer} />
-                    <RecordTable title={t('authority')} records={result.Authority} />
-                    <RecordTable title={t('additional')} records={result.Additional} />
+                    <RecordTable title={t('answer')} records={result.Answer} labels={recordLabels} />
+                    <RecordTable title={t('authority')} records={result.Authority} labels={recordLabels} />
+                    <RecordTable title={t('additional')} records={result.Additional} labels={recordLabels} />
                     {![result.Answer, result.Authority, result.Additional].some(records => (
                         records?.some(record => record.type !== 41)
                     )) && (

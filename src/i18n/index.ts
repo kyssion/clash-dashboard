@@ -25,14 +25,6 @@ export type LocalizedType = US
 export const locales = Object.keys(Language)
 
 export function getDefaultLanguage (): Lang {
-    for (const language of window.navigator.languages) {
-        const normalized = language.toLowerCase()
-        if (normalized.includes('zh')) {
-            return 'zh_CN'
-        } else if (normalized.includes('us')) {
-            return 'en_US'
-        }
-    }
-
-    return 'en_US'
+    const language = window.navigator.languages?.[0] ?? window.navigator.language
+    return language?.toLowerCase().startsWith('zh') ? 'zh_CN' : 'en_US'
 }

@@ -80,7 +80,8 @@ export default function Rules () {
                     {filteredRules.length} / {rules.length}
                 </span>
             </Header>
-            <Card className="mt-2.5 flex flex-1 flex-col p-0 md:mt-4 focus:outline-none">
+            <Card className="rules-card mt-2.5 flex flex-1 flex-col p-0 md:mt-4 focus:outline-none">
+                {filteredRules.length === 0 && <div className="rules-empty">{t('noResults')}</div>}
                 <AutoSizer className="min-h-120">
                     {
                         ({ height, width }) => (

@@ -1,6 +1,6 @@
 import classnames from 'classnames'
 
-import { Tag, Icon } from '@components'
+import { Tag, Icon, error as showError } from '@components'
 import { fromNow } from '@lib/date'
 import { useVisible } from '@lib/hook'
 import { type RuleProvider } from '@lib/request'
@@ -23,7 +23,10 @@ export function Provider (props: ProvidersProps) {
 
     function handleUpdate () {
         show()
-        client.updateRuleProvider(provider.name).then(async () => await update()).finally(() => hide())
+        client.updateRuleProvider(provider.name)
+            .then(async () => await update())
+            .catch(() => showError(t('providerActionError')))
+            .finally(() => hide())
     }
 
     const updateClassnames = classnames('rule-provider-icon', { 'rule-provider-loading': visible })

@@ -33,6 +33,10 @@ const EN = {
         authority: 'Authority',
         additional: 'Additional',
         empty: 'No records',
+        name: 'Name',
+        type: 'Type',
+        ttl: 'TTL',
+        data: 'Data',
     },
     Settings: {
         title: 'Settings',
@@ -55,6 +59,7 @@ const EN = {
         reloading: 'Reloading...',
         reloadSuccess: 'Configuration reloaded',
         reloadError: 'Failed to reload configuration',
+        updateError: 'Failed to update configuration',
         values: {
             cn: '中文',
             en: 'English',
@@ -75,6 +80,8 @@ const EN = {
         providerUpdateTime: 'Last updated at',
         ruleCount: 'Rule count',
         searchPlaceholder: 'Search rules',
+        noResults: 'No matching rules',
+        providerActionError: 'Provider operation failed',
     },
     Connections: {
         title: 'Connections',
@@ -151,6 +158,7 @@ const EN = {
         collapseText: 'Collapse',
         speedTestText: 'Speed Test',
         breakConnectionsText: 'Close connections which include the group',
+        providerActionError: 'Provider operation failed',
     },
     Modal: {
         ok: 'Ok',

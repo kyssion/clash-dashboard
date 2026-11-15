@@ -36,7 +36,7 @@ export function Input (props: InputProps) {
     const classname = classnames('input', `text-${align}`, { 'focus:shadow-none': inside }, className)
 
     function handleKeyDown (e: KeyboardEvent<HTMLInputElement>) {
-        if (e.code === 'Enter') {
+        if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
             onEnter(e)
         }
     }

@@ -33,6 +33,10 @@ const CN = {
         authority: '权威记录',
         additional: '附加记录',
         empty: '没有记录',
+        name: '域名',
+        type: '类型',
+        ttl: 'TTL',
+        data: '数据',
     },
     Settings: {
         title: '设置',
@@ -55,6 +59,7 @@ const CN = {
         reloading: '加载中...',
         reloadSuccess: '配置已重新加载',
         reloadError: '配置重新加载失败',
+        updateError: '配置更新失败',
         values: {
             cn: '中文',
             en: 'English',
@@ -75,6 +80,8 @@ const CN = {
         providerUpdateTime: '最后更新于',
         ruleCount: '规则条数',
         searchPlaceholder: '搜索规则',
+        noResults: '没有匹配的规则',
+        providerActionError: '规则集操作失败',
     },
     Connections: {
         title: '连接',
@@ -151,6 +158,7 @@ const CN = {
         collapseText: '收起',
         speedTestText: '测速',
         breakConnectionsText: '切换时打断包含策略组的连接',
+        providerActionError: 'Provider 操作失败',
     },
     Modal: {
         ok: '确 定',

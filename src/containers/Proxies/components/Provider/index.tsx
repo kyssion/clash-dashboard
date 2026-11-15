@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 
-import { Card, Tag, Icon, Loading } from '@components'
+import { Card, Tag, Icon, Loading, error as showError } from '@components'
 import { compareDesc } from '@containers/Proxies'
 import { Proxy } from '@containers/Proxies/components/Proxy'
 import { fromNow } from '@lib/date'
@@ -26,12 +26,18 @@ export function Provider (props: ProvidersProps) {
 
     function handleHealthChech () {
         show()
-        client.healthCheckProvider(provider.name).then(async () => await update()).finally(() => hide())
+        client.healthCheckProvider(provider.name)
+            .then(async () => await update())
+            .catch(() => showError(t('providerActionError')))
+            .finally(() => hide())
     }
 
     function handleUpdate () {
         show()
-        client.updateProvider(provider.name).then(async () => await update()).finally(() => hide())
+        client.updateProvider(provider.name)
+            .then(async () => await update())
+            .catch(() => showError(t('providerActionError')))
+            .finally(() => hide())
     }
 
     const proxies = useMemo(() => {
